@@ -2,14 +2,9 @@
 
 import { useMemo, useState } from "react"
 import { CheckCircle2, ChevronRight, Inbox, Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
-import {
-  type Lead,
-  type LeadStatus,
-  STATUS_LABELS,
-  STATUS_ORDER,
-  SOLUTION_LABELS,
-} from "@/lib/types"
+import { type Lead, type LeadStatus, STATUS_ORDER } from "@/lib/types"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
@@ -29,6 +24,7 @@ const STATUS_DOT: Record<LeadStatus, string> = {
 }
 
 export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: Props) {
+  const t = useTranslations()
   const [filter, setFilter] = useState<LeadStatus | "all">("all")
   const [query, setQuery] = useState("")
 
@@ -65,7 +61,7 @@ export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: P
         <div className="flex items-center gap-2">
           <Inbox className="size-3.5 text-muted-foreground" />
           <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Pipeline
+            {t("searchPanel.title")}
           </span>
         </div>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
@@ -79,17 +75,22 @@ export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: P
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search company, industry…"
+            placeholder={t("searchPanel.searchPlaceholder")}
             className="h-8 w-full rounded-md border border-border bg-card pl-8 pr-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
         <div className="flex flex-wrap gap-1">
-          <FilterChip label="All" active={filter === "all"} count={leads.length} onClick={() => setFilter("all")} />
+          <FilterChip
+            label={t("searchPanel.filterAll")}
+            active={filter === "all"}
+            count={leads.length}
+            onClick={() => setFilter("all")}
+          />
           {STATUS_ORDER.map((s) => (
             <FilterChip
               key={s}
-              label={STATUS_LABELS[s]}
+              label={t(`statuses.${s}` as `statuses.analyzed`)}
               active={filter === s}
               count={counts[s]}
               dot={STATUS_DOT[s]}
@@ -106,9 +107,9 @@ export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: P
               <EmptyMedia variant="icon">
                 <Inbox />
               </EmptyMedia>
-              <EmptyTitle className="text-sm">No leads yet</EmptyTitle>
+              <EmptyTitle className="text-sm">{t("searchPanel.emptyTitle")}</EmptyTitle>
               <EmptyDescription className="text-xs">
-                Drop a URL into the Co-Pilot to qualify your first prospect.
+                {t("searchPanel.emptyDescription")}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -173,6 +174,7 @@ function LeadRow({
   onSelect: () => void
   onStatusChange: (s: LeadStatus) => void
 }) {
+  const t = useTranslations()
   return (
     <button
       type="button"
@@ -189,7 +191,9 @@ function LeadRow({
           <div className="truncate text-sm font-medium text-foreground">{lead.company_name}</div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <span className={cn("size-1.5 rounded-full", STATUS_DOT[lead.status])} />
-            <span className="font-mono">{STATUS_LABELS[lead.status]}</span>
+            <span className="font-mono">
+              {t(`statuses.${lead.status}` as `statuses.analyzed`)}
+            </span>
             {lead.industry && (
               <>
                 <span>·</span>
@@ -203,13 +207,13 @@ function LeadRow({
           <span className={cn("text-base font-medium", lead.lead_score >= 70 ? "text-primary" : "text-foreground")}>
             {lead.lead_score}
           </span>
-          <span className="text-[10px] text-muted-foreground">/100</span>
+          <span className="text-[10px] text-muted-foreground">{t("searchPanel.scoreSuffix")}</span>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
         <span className="rounded-sm border border-border/70 bg-card px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-muted-foreground">
-          {SOLUTION_LABELS[lead.suggested_solution]}
+          {t(`solutions.${lead.suggested_solution}` as `solutions.automation`)}
         </span>
         <ChevronRight
           className={cn(
@@ -233,10 +237,11 @@ function NextStatusButton({
   lead: Lead
   onStatusChange: (s: LeadStatus) => void
 }) {
-  const next: Partial<Record<LeadStatus, { label: string; to: LeadStatus }>> = {
-    analyzed: { label: "Mark contacted", to: "contacted" },
-    contacted: { label: "Mark followed up", to: "follow_up" },
-    follow_up: { label: "Mark meeting booked", to: "meeting" },
+  const t = useTranslations("searchPanel.nextActions")
+  const next: Partial<Record<LeadStatus, { labelKey: "markContacted" | "markFollowUp" | "markMeeting"; to: LeadStatus }>> = {
+    analyzed: { labelKey: "markContacted", to: "contacted" },
+    contacted: { labelKey: "markFollowUp", to: "follow_up" },
+    follow_up: { labelKey: "markMeeting", to: "meeting" },
   }
   const action = next[lead.status]
   if (!action) return null
@@ -250,7 +255,7 @@ function NextStatusButton({
       className="mt-1 hidden items-center gap-1 self-start rounded-sm border border-border bg-card px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground transition hover:border-primary/40 hover:text-primary group-hover:flex"
     >
       <CheckCircle2 className="size-3" />
-      {action.label}
+      {t(action.labelKey)}
     </button>
   )
 }

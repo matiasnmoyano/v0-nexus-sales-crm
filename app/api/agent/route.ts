@@ -45,14 +45,30 @@ const ANALYSIS_SCHEMA = z.object({
   }),
 })
 
-function buildSystemPrompt(agency: {
-  name: string
-  description: string
-  services: Array<{ title: string; detail: string }>
-  case_studies: Array<{ title: string; detail: string }>
-  tone: string
-}) {
+type AgentLocale = "es" | "en"
+
+function languageInstructions(locale: AgentLocale) {
+  if (locale === "es") {
+    return `# Idioma
+RESPONDÉ ÍNTEGRAMENTE EN ESPAÑOL RIOPLATENSE. Todos los problemas detectados, justificaciones, razonamiento en prosa y los borradores de outreach (email, LinkedIn, WhatsApp) deben estar escritos en español. No mezcles inglés excepto para nombres propios o términos técnicos sin traducción natural.`
+  }
+  return `# Language
+RESPOND ENTIRELY IN ENGLISH. All detected problems, justifications, reasoning prose, and outreach drafts (email, LinkedIn, WhatsApp) must be written in English. Do not mix Spanish except for proper nouns or technical terms with no natural translation.`
+}
+
+function buildSystemPrompt(
+  agency: {
+    name: string
+    description: string
+    services: Array<{ title: string; detail: string }>
+    case_studies: Array<{ title: string; detail: string }>
+    tone: string
+  },
+  locale: AgentLocale,
+) {
   return `You are the senior sales analyst at ${agency.name}.
+
+${languageInstructions(locale)}
 
 # Agency profile
 ${agency.description}
@@ -149,7 +165,9 @@ async function scrapeWebsite(rawUrl: string): Promise<{
 }
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json()
+  const body: { messages: UIMessage[]; locale?: string } = await req.json()
+  const { messages } = body
+  const locale: AgentLocale = body.locale === "en" ? "en" : "es"
 
   await ensureSchema()
   const agency = await getAgencyConfig()
@@ -245,7 +263,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model,
-    system: buildSystemPrompt(agency),
+    system: buildSystemPrompt(agency, locale),
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(6),

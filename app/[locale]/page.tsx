@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { setRequestLocale, getTranslations } from "next-intl/server"
 import { NexusDashboard } from "@/components/nexus/dashboard"
 import { getAgencyConfig, listLeads } from "@/app/actions"
 
@@ -9,12 +10,16 @@ async function DashboardLoader() {
   return <NexusDashboard initialLeads={leads} initialAgency={agency} />
 }
 
-export default function Page() {
+export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations()
+
   return (
     <Suspense
       fallback={
         <div className="flex h-dvh items-center justify-center text-muted-foreground text-sm font-mono">
-          Booting Nexus…
+          {t("boot")}
         </div>
       }
     >

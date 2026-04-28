@@ -12,18 +12,16 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { ScoreRing } from "./score-ring"
 import { listMessagesForLead } from "@/app/actions"
 import { cn } from "@/lib/utils"
 import {
-  CHANNEL_LABELS,
   type Channel,
   type Lead,
   type LeadStatus,
   type Message,
-  MESSAGE_TYPE_LABELS,
-  SOLUTION_LABELS,
-  STATUS_LABELS,
+  type MessageType,
   STATUS_ORDER,
 } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -61,6 +59,8 @@ const STATUS_DOT: Record<LeadStatus, string> = {
 }
 
 export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
+  const t = useTranslations()
+  const locale = useLocale()
   const [messages, setMessages] = useState<Message[]>([])
   const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -91,11 +91,8 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
             <EmptyMedia variant="icon">
               <Sparkles />
             </EmptyMedia>
-            <EmptyTitle>No lead selected</EmptyTitle>
-            <EmptyDescription>
-              Send a URL to the Co-Pilot, or pick a lead from the pipeline to inspect its analysis,
-              score and outreach drafts.
-            </EmptyDescription>
+            <EmptyTitle>{t("leadDetail.emptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("leadDetail.emptyDescription")}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       </section>
@@ -108,11 +105,11 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
         <div className="flex items-center gap-2">
           <span className={cn("size-1.5 rounded-full", STATUS_DOT[lead.status])} />
           <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            {STATUS_LABELS[lead.status]}
+            {t(`statuses.${lead.status}` as `statuses.analyzed`)}
           </span>
           <span className="text-muted-foreground">·</span>
           <span className="font-mono text-xs text-muted-foreground">
-            {new Date(lead.created_at).toLocaleString(undefined, {
+            {new Date(lead.created_at).toLocaleString(locale, {
               month: "short",
               day: "2-digit",
               hour: "2-digit",
@@ -125,12 +122,12 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="size-8">
               <MoreHorizontal className="size-4" />
-              <span className="sr-only">Lead actions</span>
+              <span className="sr-only">{t("leadDetail.leadActions")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Move to
+              {t("leadDetail.moveTo")}
             </DropdownMenuLabel>
             {STATUS_ORDER.map((s) => (
               <DropdownMenuItem
@@ -139,7 +136,7 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
                 disabled={s === lead.status}
               >
                 <span className={cn("mr-2 size-1.5 rounded-full", STATUS_DOT[s])} />
-                {STATUS_LABELS[s]}
+                {t(`statuses.${s}` as `statuses.analyzed`)}
                 {s === lead.status && <Check className="ml-auto size-3.5 text-primary" />}
               </DropdownMenuItem>
             ))}
@@ -150,7 +147,7 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
               className="gap-2"
             >
               <Trash2 className="size-3.5" />
-              Delete lead
+              {t("leadDetail.deleteLead")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -169,6 +166,7 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
 }
 
 function Header({ lead }: { lead: Lead }) {
+  const t = useTranslations()
   return (
     <div className="flex items-start justify-between gap-6">
       <div className="min-w-0 space-y-2">
@@ -182,7 +180,7 @@ function Header({ lead }: { lead: Lead }) {
             </span>
           )}
           <span className="rounded-sm border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono uppercase tracking-wide text-primary">
-            {SOLUTION_LABELS[lead.suggested_solution]}
+            {t(`solutions.${lead.suggested_solution}` as `solutions.automation`)}
           </span>
           {lead.url && (
             <a
@@ -206,11 +204,12 @@ function Header({ lead }: { lead: Lead }) {
 }
 
 function Problems({ lead }: { lead: Lead }) {
+  const t = useTranslations()
   if (!lead.detected_problems?.length) return null
   return (
     <section className="space-y-2.5">
       <h2 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-        Detected problems
+        {t("leadDetail.problems")}
       </h2>
       <ul className="space-y-2">
         {lead.detected_problems.map((p, i) => (
@@ -233,22 +232,25 @@ function Problems({ lead }: { lead: Lead }) {
 }
 
 function ScoreCard({ lead }: { lead: Lead }) {
+  const t = useTranslations()
   const b = lead.score_breakdown
-  const rows: Array<{ label: string; value: number }> = [
-    { label: "Digital pain", value: b?.digital_pain ?? 0 },
-    { label: "Buying capacity", value: b?.buying_capacity ?? 0 },
-    { label: "Service fit", value: b?.service_fit ?? 0 },
+  const rows: Array<{ key: "digital_pain" | "buying_capacity" | "service_fit"; value: number }> = [
+    { key: "digital_pain", value: b?.digital_pain ?? 0 },
+    { key: "buying_capacity", value: b?.buying_capacity ?? 0 },
+    { key: "service_fit", value: b?.service_fit ?? 0 },
   ]
   return (
     <section className="space-y-2.5">
       <h2 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-        Score breakdown
+        {t("leadDetail.scoreBreakdown")}
       </h2>
       <div className="rounded-md border border-border bg-card p-4">
         <div className="space-y-3">
           {rows.map((r) => (
-            <div key={r.label} className="grid grid-cols-[140px_1fr_40px] items-center gap-3">
-              <span className="text-xs text-muted-foreground">{r.label}</span>
+            <div key={r.key} className="grid grid-cols-[140px_1fr_40px] items-center gap-3">
+              <span className="text-xs text-muted-foreground">
+                {t(`leadDetail.scoreLabels.${r.key}` as `leadDetail.scoreLabels.digital_pain`)}
+              </span>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className={cn(
@@ -283,6 +285,7 @@ function MessagesSection({
   messages: Message[]
   loading: boolean
 }) {
+  const t = useTranslations()
   const channels: Channel[] = useMemo(() => {
     const set = new Set(messages.map((m) => m.channel))
     return (["email", "linkedin", "whatsapp"] as Channel[]).filter((c) => set.has(c))
@@ -293,24 +296,28 @@ function MessagesSection({
     if (channels.length && !channels.includes(active)) setActive(channels[0])
   }, [channels, active])
 
+  // silence unused-var warnings in TSX without erasing the prop, which is part
+  // of the panel's public API and will be useful when we add channel filters.
+  void lead
+
   return (
     <section className="space-y-2.5">
       <div className="flex items-center justify-between">
         <h2 className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-          Outreach drafts
+          {t("leadDetail.outreach")}
         </h2>
         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-          {messages.length} ready
+          {t("leadDetail.ready", { count: messages.length })}
         </span>
       </div>
 
       {loading ? (
         <div className="rounded-md border border-border bg-card p-6 text-center text-xs text-muted-foreground">
-          Loading drafts…
+          {t("leadDetail.loading")}
         </div>
       ) : messages.length === 0 ? (
         <div className="rounded-md border border-dashed border-border bg-card/40 p-6 text-center text-xs text-muted-foreground">
-          No outreach drafts on this lead.
+          {t("leadDetail.noDrafts")}
         </div>
       ) : (
         <Tabs value={active} onValueChange={(v) => setActive(v as Channel)}>
@@ -320,7 +327,7 @@ function MessagesSection({
                 {c === "email" && <Mail className="size-3" />}
                 {c === "linkedin" && <ArrowUpRight className="size-3" />}
                 {c === "whatsapp" && <MessageSquare className="size-3" />}
-                {CHANNEL_LABELS[c]}
+                {t(`channels.${c}` as `channels.email`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -341,12 +348,13 @@ function MessagesSection({
 }
 
 function MessageCard({ message }: { message: Message }) {
+  const t = useTranslations()
   const [copied, setCopied] = useState(false)
   return (
     <article className="rounded-md border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-3.5 py-2">
         <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-          {MESSAGE_TYPE_LABELS[message.type]}
+          {t(`leadDetail.messageTypes.${message.type as MessageType}` as `leadDetail.messageTypes.initial`)}
         </span>
         <button
           type="button"
@@ -354,16 +362,16 @@ function MessageCard({ message }: { message: Message }) {
             try {
               await navigator.clipboard.writeText(message.content)
               setCopied(true)
-              toast.success("Copied to clipboard")
+              toast.success(t("toasts.copied"))
               setTimeout(() => setCopied(false), 1500)
             } catch {
-              toast.error("Could not copy")
+              toast.error(t("toasts.copyFailed"))
             }
           }}
           className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground transition hover:bg-accent hover:text-foreground"
         >
           {copied ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("leadDetail.copied") : t("leadDetail.copy")}
         </button>
       </header>
       <div className="whitespace-pre-wrap px-3.5 py-3 text-sm leading-relaxed text-foreground">

@@ -15,6 +15,7 @@ import {
   Trash,
   TriangleAlert,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import type { AgencyConfig } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,8 @@ const EXAMPLES = [
 ]
 
 export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
+  const t = useTranslations("copilot")
+  const locale = useLocale()
   const [input, setInput] = useState("")
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastSavedRef = useRef<string | null>(null)
@@ -47,7 +50,6 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
       if (m.role !== "assistant" || !m.parts) continue
       for (const part of m.parts) {
         if (
-          // tool-output part type for tool 'save_analysis'
           part.type === "tool-save_analysis" &&
           (part as { state?: string }).state === "output-available"
         ) {
@@ -74,7 +76,9 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
     const text = input.trim()
     if (!text || isStreaming) return
     setInput("")
-    sendMessage({ text })
+    // Send the active UI locale alongside each message so the LLM replies in
+    // the same language the user is currently reading the app in.
+    sendMessage({ text }, { body: { locale } })
   }
 
   return (
@@ -83,12 +87,12 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
         <div className="flex items-center gap-2">
           <Bot className="size-3.5 text-primary" />
           <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Co-Pilot
+            {t("title")}
           </span>
           {isStreaming && (
             <span className="ml-1 inline-flex items-center gap-1 rounded-sm bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-primary">
               <span className="size-1 rounded-full bg-primary nexus-pulse-dot" />
-              Live
+              {t("live")}
             </span>
           )}
         </div>
@@ -102,7 +106,7 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
             className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <Trash className="size-3" />
-            Clear
+            {t("clear")}
           </button>
         )}
       </div>
@@ -135,23 +139,23 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
                 handleSubmit()
               }
             }}
-            placeholder="Drop a URL or describe a lead…"
+            placeholder={t("placeholder")}
             rows={2}
             className="block w-full resize-none bg-transparent px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
           <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
             <span className="font-mono text-[10px] text-muted-foreground">
-              ⏎ to analyse · ⇧⏎ for newline
+              {t("submitHint")}
             </span>
             {isStreaming ? (
               <Button type="button" size="sm" variant="outline" onClick={() => stop()} className="gap-1.5 font-mono text-xs">
                 <Square className="size-3" />
-                Stop
+                {t("stop")}
               </Button>
             ) : (
               <Button type="submit" size="sm" disabled={!input.trim()} className="gap-1.5 font-mono text-xs">
                 <ArrowUp className="size-3" />
-                Analyse
+                {t("analyze")}
               </Button>
             )}
           </div>
@@ -168,25 +172,24 @@ function Welcome({
   agency: AgencyConfig
   onPick: (text: string) => void
 }) {
+  const t = useTranslations("copilot")
   return (
     <div className="space-y-4 py-2">
       <div className="rounded-md border border-border bg-card p-4">
         <div className="mb-2 flex items-center gap-1.5">
           <Sparkles className="size-3.5 text-primary" />
           <span className="font-mono text-[11px] uppercase tracking-wider text-primary">
-            Briefing
+            {t("briefingTitle")}
           </span>
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          I&apos;m the senior sales analyst at <span className="text-foreground">{agency.name}</span>.
-          Drop a website URL and I&apos;ll scrape it, decide whether automation or custom software fits,
-          score the lead and draft outreach in your tone.
+          {t("briefingBody", { agencyName: agency.name })}
         </p>
       </div>
 
       <div className="space-y-1.5">
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          Try one of these
+          {t("tryOne")}
         </span>
         <div className="flex flex-col gap-1.5">
           {EXAMPLES.map((url) => (
@@ -270,6 +273,7 @@ function ToolShell({
   state: string | undefined
   children?: React.ReactNode
 }) {
+  const t = useTranslations("copilot.tools")
   const isError = state === "output-error"
   const isDone = state === "output-available"
   return (
@@ -306,11 +310,11 @@ function ToolShell({
           </span>
           <span className="font-mono text-[10px] text-muted-foreground/70">
             {state === "input-streaming" || state === "input-available"
-              ? "running"
+              ? t("running")
               : isDone
-                ? "done"
+                ? t("done")
                 : isError
-                  ? "error"
+                  ? t("error")
                   : ""}
           </span>
         </div>
@@ -321,13 +325,14 @@ function ToolShell({
 }
 
 function ScrapeToolPart({ part }: { part: UIPart }) {
+  const t = useTranslations("copilot.tools")
   const input = part.input as { url?: string } | undefined
   const output = part.output as
     | { ok: boolean; url?: string; status?: number; title?: string; chars?: number; error?: string }
     | undefined
 
   return (
-    <ToolShell icon={<Globe className="size-3" />} label="Scrape website" state={part.state}>
+    <ToolShell icon={<Globe className="size-3" />} label={t("scrape")} state={part.state}>
       {input?.url && (
         <div className="truncate font-mono text-xs text-muted-foreground">
           → {input.url.replace(/^https?:\/\//, "")}
@@ -340,11 +345,11 @@ function ScrapeToolPart({ part }: { part: UIPart }) {
               {output.title && <div className="truncate text-foreground">{output.title}</div>}
               <div>
                 <span className="text-success">{output.status}</span> ·{" "}
-                <span className="tabular-nums">{output.chars}</span> chars extracted
+                <span className="tabular-nums">{output.chars}</span> {t("charsExtracted")}
               </div>
             </>
           ) : (
-            <div className="text-destructive">{output.error || "scrape failed"}</div>
+            <div className="text-destructive">{output.error || t("scrapeFailed")}</div>
           )}
         </div>
       )}
@@ -353,20 +358,22 @@ function ScrapeToolPart({ part }: { part: UIPart }) {
 }
 
 function SaveToolPart({ part }: { part: UIPart }) {
+  const t = useTranslations("copilot.tools")
+  const tSolutions = useTranslations("solutions")
   const output = part.output as
     | {
         ok: boolean
         lead_id?: string
         company_name?: string
         lead_score?: number
-        suggested_solution?: string
+        suggested_solution?: "automation" | "custom_software"
       }
     | undefined
 
   return (
     <ToolShell
       icon={<Database className="size-3" />}
-      label="Save analysis"
+      label={t("save")}
       state={part.state}
     >
       {output?.ok && (
@@ -374,14 +381,15 @@ function SaveToolPart({ part }: { part: UIPart }) {
           <div className="text-foreground">
             {output.company_name}{" "}
             <span className="text-muted-foreground">
-              · score{" "}
+              · {t("score")}{" "}
               <span className={cn(output.lead_score && output.lead_score >= 70 ? "text-primary" : "text-foreground")}>
                 {output.lead_score}
               </span>
             </span>
           </div>
           <div className="text-muted-foreground">
-            saved as lead · {output.suggested_solution?.replace("_", " ")}
+            {t("savedAs")}
+            {output.suggested_solution && <> · {tSolutions(output.suggested_solution)}</>}
           </div>
         </div>
       )}

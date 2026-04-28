@@ -1,0 +1,159 @@
+{
+  "boot": "Iniciando Nexus…",
+  "header": {
+    "tagline": "Sistema operativo de ventas con IA",
+    "leadCount": "{count, plural, one {# lead} other {# leads}}",
+    "configButton": "Configuración de agencia",
+    "infoButton": "¿Qué es esto?",
+    "toggleLang": "EN"
+  },
+  "searchPanel": {
+    "title": "Pipeline",
+    "searchPlaceholder": "Buscar empresa, rubro…",
+    "filterAll": "Todos",
+    "emptyTitle": "Sin leads todavía",
+    "emptyDescription": "Pegá una URL en el Co-Pilot para calificar tu primer prospecto.",
+    "scoreSuffix": "/100",
+    "nextActions": {
+      "markContacted": "Marcar contactado",
+      "markFollowUp": "Marcar en seguimiento",
+      "markMeeting": "Marcar reunión"
+    }
+  },
+  "leadDetail": {
+    "emptyTitle": "Ningún lead seleccionado",
+    "emptyDescription": "Mandale una URL al Co-Pilot, o elegí un lead del pipeline para ver su análisis, score y mensajes de prospección.",
+    "moveTo": "Mover a",
+    "deleteLead": "Eliminar lead",
+    "leadActions": "Acciones del lead",
+    "problems": "Problemas detectados",
+    "scoreBreakdown": "Desglose del score",
+    "scoreLabels": {
+      "digital_pain": "Dolor digital",
+      "buying_capacity": "Capacidad de inversión",
+      "service_fit": "Encaje de servicio"
+    },
+    "outreach": "Borradores de outreach",
+    "ready": "{count} listos",
+    "loading": "Cargando borradores…",
+    "noDrafts": "Este lead no tiene borradores.",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "messageTypes": {
+      "initial": "Mensaje inicial",
+      "followup_d3": "Follow-up · día 3",
+      "followup_d7": "Follow-up · día 7"
+    }
+  },
+  "copilot": {
+    "title": "Co-Pilot",
+    "live": "En vivo",
+    "clear": "Limpiar",
+    "briefingTitle": "Briefing",
+    "briefingBody": "Soy el analista senior de ventas en {agencyName}. Pegame una URL y la voy a scrapear, decidir si encaja con automatización o software a medida, calcular un lead score y redactar el outreach en tu tono.",
+    "tryOne": "Probá con una de estas",
+    "placeholder": "Pegá una URL o describí un lead…",
+    "submitHint": "⏎ para analizar · ⇧⏎ salto de línea",
+    "stop": "Detener",
+    "analyze": "Analizar",
+    "tools": {
+      "scrape": "Scrape de sitio",
+      "save": "Guardar análisis",
+      "running": "ejecutando",
+      "done": "listo",
+      "error": "error",
+      "scrapeFailed": "scrape falló",
+      "charsExtracted": "caracteres extraídos",
+      "savedAs": "guardado como lead",
+      "score": "score"
+    },
+    "savedToast": "{company} analizado · score {score}"
+  },
+  "statuses": {
+    "analyzed": "Analizado",
+    "contacted": "Contactado",
+    "follow_up": "En seguimiento",
+    "meeting": "Reunión",
+    "discarded": "Descartado"
+  },
+  "solutions": {
+    "automation": "Automatización",
+    "custom_software": "Software a medida"
+  },
+  "channels": {
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "whatsapp": "WhatsApp"
+  },
+  "agencyConfig": {
+    "title": "Perfil de agencia",
+    "subtitle": "El Co-Pilot usa este perfil para calificar leads y redactar el outreach. Si lo actualizás, los próximos análisis se adaptan.",
+    "name": "Nombre",
+    "namePlaceholder": "ej. Nexus Labs",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Qué hacés, a quién servís, tu propuesta de valor.",
+    "descriptionHint": "Un párrafo corto. Se usa como briefing de la agencia.",
+    "tone": "Voz / tono",
+    "tonePlaceholder": "ej. Directo y técnico. Sin paja, foco en ROI medible.",
+    "toneHint": "El Co-Pilot replica este tono en cada email, DM de LinkedIn y WhatsApp.",
+    "services": "Servicios",
+    "servicesHint": "Las dos líneas principales que vendés. Títulos cortos.",
+    "servicePlaceholderTitle": "ej. Software a medida",
+    "servicePlaceholderDetail": "Qué entrega en una oración.",
+    "caseStudies": "Casos de éxito",
+    "caseStudiesHint": "Casos reales que el Co-Pilot puede referenciar. Mantenelos factuales.",
+    "caseStudyPlaceholderTitle": "ej. Bot de WhatsApp para una agencia",
+    "caseStudyPlaceholderDetail": "El resultado — automatizó el 70% del intake.",
+    "add": "Agregar",
+    "remove": "Quitar",
+    "noneYet": "Ninguno todavía — clickeá {add} para crear uno.",
+    "cancel": "Cancelar",
+    "save": "Guardar perfil",
+    "saving": "Guardando…",
+    "savedToast": "Perfil de agencia actualizado",
+    "saveError": "No se pudo guardar",
+    "validationError": "Nombre, descripción y tono son obligatorios"
+  },
+  "toasts": {
+    "copied": "Copiado al portapapeles",
+    "copyFailed": "No se pudo copiar",
+    "leadRemoved": "Lead eliminado",
+    "removeLeadFailed": "No se pudo eliminar el lead",
+    "statusUpdateFailed": "No se pudo actualizar el estado"
+  },
+  "infoModal": {
+    "title": "¿Qué es Nexus Sales?",
+    "open": "¿Qué es esto?",
+    "close": "Cerrar",
+    "sections": {
+      "whatIs": {
+        "title": "¿Qué es Nexus Sales?",
+        "body": "Nexus Sales es un agente de ventas con IA diseñado para agencias de software. Analiza empresas como potenciales clientes y genera mensajes de prospección personalizados listos para copiar y pegar."
+      },
+      "howItWorks": {
+        "title": "¿Cómo funciona?",
+        "step1": "Pegá la URL o el nombre de una empresa en el Co-Pilot.",
+        "step2": "El agente investiga el sitio, detecta problemas y oportunidades, y calcula un Lead Score basado en 4 criterios.",
+        "step3": "Se genera automáticamente copy para Email, LinkedIn y WhatsApp, con señales específicas del lead.",
+        "step4": "Copiá el mensaje que más te guste y envialo vos manualmente.",
+        "step5": "Guardá el lead en el CRM y actualizá su estado a medida que avanza."
+      },
+      "leadScore": {
+        "title": "Lead Score",
+        "intro": "El score (0–100) mide qué tan buen prospecto es la empresa para tu agencia:",
+        "criteria1": "Encaje con catálogo (30 pts): ¿el problema que tienen matchea lo que ofrecés?",
+        "criteria2": "Fricción digital visible (25 pts): ¿hay evidencia de un problema real en su sitio?",
+        "criteria3": "Tamaño / capacidad de inversión (25 pts): ¿tienen señales de poder pagar?",
+        "criteria4": "Urgencia / timing (20 pts): ¿hay un trigger reciente (crecimiento, hiring, lanzamiento)?"
+      },
+      "philosophy": {
+        "title": "Filosofía del producto",
+        "body": "Nexus Sales no envía mensajes automáticamente. Esa es una decisión deliberada: vos decidís cuándo y cómo contactar. La IA hace el trabajo de investigar y escribir; el criterio humano decide el momento."
+      },
+      "config": {
+        "title": "Configuración",
+        "body": "Abrí “Configuración de agencia” para personalizar el brief. Cuanto más específico seas (servicios, casos, tono), mejor será el copy generado."
+      }
+    }
+  }
+}

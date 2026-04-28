@@ -1,0 +1,159 @@
+{
+  "boot": "Booting Nexus…",
+  "header": {
+    "tagline": "AI sales operating system",
+    "leadCount": "{count, plural, one {# lead} other {# leads}}",
+    "configButton": "Agency settings",
+    "infoButton": "What is this?",
+    "toggleLang": "ES"
+  },
+  "searchPanel": {
+    "title": "Pipeline",
+    "searchPlaceholder": "Search company, industry…",
+    "filterAll": "All",
+    "emptyTitle": "No leads yet",
+    "emptyDescription": "Drop a URL into the Co-Pilot to qualify your first prospect.",
+    "scoreSuffix": "/100",
+    "nextActions": {
+      "markContacted": "Mark contacted",
+      "markFollowUp": "Mark followed up",
+      "markMeeting": "Mark meeting booked"
+    }
+  },
+  "leadDetail": {
+    "emptyTitle": "No lead selected",
+    "emptyDescription": "Send a URL to the Co-Pilot, or pick a lead from the pipeline to inspect its analysis, score and outreach drafts.",
+    "moveTo": "Move to",
+    "deleteLead": "Delete lead",
+    "leadActions": "Lead actions",
+    "problems": "Detected problems",
+    "scoreBreakdown": "Score breakdown",
+    "scoreLabels": {
+      "digital_pain": "Digital pain",
+      "buying_capacity": "Buying capacity",
+      "service_fit": "Service fit"
+    },
+    "outreach": "Outreach drafts",
+    "ready": "{count} ready",
+    "loading": "Loading drafts…",
+    "noDrafts": "No outreach drafts on this lead.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "messageTypes": {
+      "initial": "Initial outreach",
+      "followup_d3": "Follow-up · day 3",
+      "followup_d7": "Follow-up · day 7"
+    }
+  },
+  "copilot": {
+    "title": "Co-Pilot",
+    "live": "Live",
+    "clear": "Clear",
+    "briefingTitle": "Briefing",
+    "briefingBody": "I'm the senior sales analyst at {agencyName}. Drop a website URL and I'll scrape it, decide whether automation or custom software fits, score the lead and draft outreach in your tone.",
+    "tryOne": "Try one of these",
+    "placeholder": "Drop a URL or describe a lead…",
+    "submitHint": "⏎ to analyse · ⇧⏎ for newline",
+    "stop": "Stop",
+    "analyze": "Analyse",
+    "tools": {
+      "scrape": "Scrape website",
+      "save": "Save analysis",
+      "running": "running",
+      "done": "done",
+      "error": "error",
+      "scrapeFailed": "scrape failed",
+      "charsExtracted": "chars extracted",
+      "savedAs": "saved as lead",
+      "score": "score"
+    },
+    "savedToast": "{company} analysed · score {score}"
+  },
+  "statuses": {
+    "analyzed": "Analyzed",
+    "contacted": "Contacted",
+    "follow_up": "Follow-up",
+    "meeting": "Meeting",
+    "discarded": "Discarded"
+  },
+  "solutions": {
+    "automation": "Automation",
+    "custom_software": "Custom software"
+  },
+  "channels": {
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "whatsapp": "WhatsApp"
+  },
+  "agencyConfig": {
+    "title": "Agency profile",
+    "subtitle": "The Co-Pilot uses this profile to qualify leads and write outreach. Update it and every future analysis adapts.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Nexus Labs",
+    "description": "Description",
+    "descriptionPlaceholder": "What you do, who you serve, your value prop.",
+    "descriptionHint": "One short paragraph. Used as the agency briefing.",
+    "tone": "Voice / tone",
+    "tonePlaceholder": "e.g. Direct but technical. No fluff, focus on measurable ROI.",
+    "toneHint": "The Co-Pilot mirrors this tone in every email, LinkedIn DM and WhatsApp.",
+    "services": "Services",
+    "servicesHint": "The two main lines you sell. Keep titles short.",
+    "servicePlaceholderTitle": "e.g. Custom software",
+    "servicePlaceholderDetail": "What it actually delivers in one sentence.",
+    "caseStudies": "Case studies",
+    "caseStudiesHint": "Real wins the Co-Pilot can reference. Keep them factual.",
+    "caseStudyPlaceholderTitle": "e.g. WhatsApp bot for an agency",
+    "caseStudyPlaceholderDetail": "The outcome — automated 70% of intake, freed sales team.",
+    "add": "Add",
+    "remove": "Remove",
+    "noneYet": "None yet — click {add} to create one.",
+    "cancel": "Cancel",
+    "save": "Save profile",
+    "saving": "Saving…",
+    "savedToast": "Agency profile updated",
+    "saveError": "Could not save",
+    "validationError": "Name, description and tone are required"
+  },
+  "toasts": {
+    "copied": "Copied to clipboard",
+    "copyFailed": "Could not copy",
+    "leadRemoved": "Lead removed",
+    "removeLeadFailed": "Could not remove lead",
+    "statusUpdateFailed": "Could not update status"
+  },
+  "infoModal": {
+    "title": "What is Nexus Sales?",
+    "open": "What is this?",
+    "close": "Close",
+    "sections": {
+      "whatIs": {
+        "title": "What is Nexus Sales?",
+        "body": "Nexus Sales is an AI sales agent built for software agencies. It analyses companies as prospects and generates personalised outreach copy ready to copy and paste."
+      },
+      "howItWorks": {
+        "title": "How does it work?",
+        "step1": "Drop the URL or name of a company into the Co-Pilot.",
+        "step2": "The agent researches the site, detects problems and opportunities, and computes a Lead Score across 4 criteria.",
+        "step3": "Email, LinkedIn and WhatsApp copy is generated automatically, referencing specific signals from the lead.",
+        "step4": "Copy the message you like best and send it manually.",
+        "step5": "Save the lead in the CRM and update its status as it progresses."
+      },
+      "leadScore": {
+        "title": "Lead Score",
+        "intro": "The score (0–100) measures how good a prospect the company is for your agency:",
+        "criteria1": "Catalog fit (30 pts): does their problem match what you offer?",
+        "criteria2": "Visible digital friction (25 pts): is there evidence of a real issue on their site?",
+        "criteria3": "Size / buying capacity (25 pts): are there signals they can pay?",
+        "criteria4": "Urgency / timing (20 pts): is there a recent trigger (growth, hiring, launch)?"
+      },
+      "philosophy": {
+        "title": "Product philosophy",
+        "body": "Nexus Sales does not send messages automatically. That's a deliberate decision: you decide when and how to reach out. The AI does the research and writing; human judgment picks the moment."
+      },
+      "config": {
+        "title": "Configuration",
+        "body": "Open “Agency settings” to customise your agency brief. The more specific you are (services, cases, tone), the better the generated copy."
+      }
+    }
+  }
+}

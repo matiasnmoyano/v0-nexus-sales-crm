@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { TopBar } from "./top-bar"
 import { PipelinePanel } from "./pipeline-panel"
 import { LeadDetailPanel } from "./lead-detail-panel"
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function NexusDashboard({ initialLeads, initialAgency }: Props) {
+  const t = useTranslations()
   const [leads, setLeads] = useState<Lead[]>(initialLeads)
   const [agency, setAgency] = useState<AgencyConfig>(initialAgency)
   const [selectedId, setSelectedId] = useState<string | null>(initialLeads[0]?.id ?? null)
@@ -38,10 +40,15 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
       const newLead = fresh.find((l) => l.id === leadId)
       if (newLead) {
         setSelectedId(newLead.id)
-        toast.success(`${newLead.company_name} analysed — score ${newLead.lead_score}`)
+        toast.success(
+          t("copilot.savedToast", {
+            company: newLead.company_name,
+            score: newLead.lead_score,
+          }),
+        )
       }
     },
-    [refreshLeads],
+    [refreshLeads, t],
   )
 
   const handleStatusChange = useCallback(
@@ -51,11 +58,11 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
       try {
         await updateLeadStatus(id, status)
       } catch {
-        toast.error("Could not update status")
+        toast.error(t("toasts.statusUpdateFailed"))
         await refreshLeads()
       }
     },
-    [refreshLeads],
+    [refreshLeads, t],
   )
 
   const handleDelete = useCallback(
@@ -68,13 +75,13 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
       }
       try {
         await deleteLead(id)
-        toast.success("Lead removed")
+        toast.success(t("toasts.leadRemoved"))
       } catch {
-        toast.error("Could not remove lead")
+        toast.error(t("toasts.removeLeadFailed"))
         setLeads(previous)
       }
     },
-    [leads, selectedId],
+    [leads, selectedId, t],
   )
 
   // refresh selected lead from DB whenever it changes — keeps messages fresh
@@ -120,7 +127,7 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
         agency={agency}
         onSaved={(next) => {
           setAgency(next)
-          toast.success("Agency profile updated")
+          toast.success(t("agencyConfig.savedToast"))
         }}
       />
     </div>

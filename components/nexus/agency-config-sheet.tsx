@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { Plus, Save, Trash2, X } from "lucide-react"
+import { Plus, Save, Trash2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { updateAgencyConfig } from "@/app/actions"
 import type { AgencyCaseStudy, AgencyConfig, AgencyService } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props) {
+  const t = useTranslations("agencyConfig")
   const [name, setName] = useState(agency.name)
   const [description, setDescription] = useState(agency.description)
   const [tone, setTone] = useState(agency.tone)
@@ -40,7 +42,7 @@ export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props
 
   const handleSave = () => {
     if (!name.trim() || !description.trim() || !tone.trim()) {
-      toast.error("Name, description and tone are required")
+      toast.error(t("validationError"))
       return
     }
     startTransition(async () => {
@@ -56,7 +58,7 @@ export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props
         onSaved(next)
         onOpenChange(false)
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Could not save")
+        toast.error(err instanceof Error ? err.message : t("saveError"))
       }
     })
   }
@@ -69,79 +71,80 @@ export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props
       >
         <SheetHeader className="border-b border-border bg-sidebar/50 px-6 py-4">
           <SheetTitle className="font-mono text-sm uppercase tracking-wider">
-            Agency profile
+            {t("title")}
           </SheetTitle>
-          <SheetDescription>
-            The Co-Pilot uses this profile to qualify leads and write outreach. Update it and every
-            future analysis adapts.
-          </SheetDescription>
+          <SheetDescription>{t("subtitle")}</SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100dvh-8rem)] px-6">
           <FieldGroup className="py-6">
             <Field>
-              <FieldLabel htmlFor="agency-name">Name</FieldLabel>
+              <FieldLabel htmlFor="agency-name">{t("name")}</FieldLabel>
               <Input
                 id="agency-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Nexus Labs"
+                placeholder={t("namePlaceholder")}
               />
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="agency-description">Description</FieldLabel>
+              <FieldLabel htmlFor="agency-description">{t("description")}</FieldLabel>
               <Textarea
                 id="agency-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                placeholder="What you do, who you serve, your value prop."
+                placeholder={t("descriptionPlaceholder")}
               />
-              <FieldDescription>One short paragraph. Used as the agency briefing.</FieldDescription>
+              <FieldDescription>{t("descriptionHint")}</FieldDescription>
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="agency-tone">Voice / tone</FieldLabel>
+              <FieldLabel htmlFor="agency-tone">{t("tone")}</FieldLabel>
               <Textarea
                 id="agency-tone"
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
                 rows={2}
-                placeholder="e.g. Direct but technical. No fluff, focus on measurable ROI."
+                placeholder={t("tonePlaceholder")}
               />
-              <FieldDescription>
-                The Co-Pilot mirrors this tone in every email, LinkedIn DM and WhatsApp.
-              </FieldDescription>
+              <FieldDescription>{t("toneHint")}</FieldDescription>
             </Field>
 
             <DynamicListEditor
-              label="Services"
-              hint="The two main lines you sell. Keep titles short."
+              label={t("services")}
+              hint={t("servicesHint")}
               items={services}
               onChange={setServices}
-              placeholderTitle="e.g. Custom software"
-              placeholderDetail="What it actually delivers in one sentence."
+              placeholderTitle={t("servicePlaceholderTitle")}
+              placeholderDetail={t("servicePlaceholderDetail")}
+              addLabel={t("add")}
+              removeLabel={t("remove")}
+              emptyText={t("noneYet", { add: t("add") })}
             />
 
             <DynamicListEditor
-              label="Case studies"
-              hint="Real wins the Co-Pilot can reference. Keep them factual."
+              label={t("caseStudies")}
+              hint={t("caseStudiesHint")}
               items={caseStudies}
               onChange={setCaseStudies}
-              placeholderTitle="e.g. WhatsApp bot for an agency"
-              placeholderDetail="The outcome — automated 70% of intake, freed sales team."
+              placeholderTitle={t("caseStudyPlaceholderTitle")}
+              placeholderDetail={t("caseStudyPlaceholderDetail")}
+              addLabel={t("add")}
+              removeLabel={t("remove")}
+              emptyText={t("noneYet", { add: t("add") })}
             />
           </FieldGroup>
         </ScrollArea>
 
         <div className="flex items-center justify-end gap-2 border-t border-border bg-sidebar/50 px-6 py-3">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isPending} className="gap-1.5 font-mono">
             <Save className="size-3.5" />
-            {isPending ? "Saving…" : "Save profile"}
+            {isPending ? t("saving") : t("save")}
           </Button>
         </div>
       </SheetContent>
@@ -156,6 +159,9 @@ function DynamicListEditor<T extends { title: string; detail: string }>({
   onChange,
   placeholderTitle,
   placeholderDetail,
+  addLabel,
+  removeLabel,
+  emptyText,
 }: {
   label: string
   hint: string
@@ -163,6 +169,9 @@ function DynamicListEditor<T extends { title: string; detail: string }>({
   onChange: (next: T[]) => void
   placeholderTitle: string
   placeholderDetail: string
+  addLabel: string
+  removeLabel: string
+  emptyText: string
 }) {
   return (
     <Field>
@@ -176,14 +185,14 @@ function DynamicListEditor<T extends { title: string; detail: string }>({
           className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground transition hover:border-primary/40 hover:text-primary"
         >
           <Plus className="size-3" />
-          Add
+          {addLabel}
         </button>
       </div>
       <FieldDescription>{hint}</FieldDescription>
       <div className="mt-2 space-y-2">
         {items.length === 0 && (
           <div className="rounded-md border border-dashed border-border bg-card/40 px-3 py-4 text-center text-xs text-muted-foreground">
-            None yet — click <span className="font-mono">Add</span> to create one.
+            {emptyText}
           </div>
         )}
         {items.map((item, idx) => (
@@ -216,7 +225,7 @@ function DynamicListEditor<T extends { title: string; detail: string }>({
                 type="button"
                 onClick={() => onChange(items.filter((_, i) => i !== idx))}
                 className="rounded-sm p-1 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                aria-label="Remove"
+                aria-label={removeLabel}
               >
                 <Trash2 className="size-3.5" />
               </button>
