@@ -67,17 +67,21 @@ export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full gap-0 sm:max-w-xl bg-background p-0"
+        className="flex w-full flex-col gap-0 sm:max-w-xl bg-background p-0"
       >
-        <SheetHeader className="border-b border-border bg-sidebar/50 px-6 py-4">
+        <SheetHeader className="shrink-0 border-b border-border bg-sidebar/50 px-6 py-4">
           <SheetTitle className="font-mono text-sm uppercase tracking-wider">
             {t("title")}
           </SheetTitle>
           <SheetDescription>{t("subtitle")}</SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100dvh-8rem)] px-6">
-          <FieldGroup className="py-6">
+        {/* `flex-1 min-h-0` lets the scroll area claim every pixel between
+            the (variable height) header and footer without overflowing. The
+            old `h-[calc(100dvh-8rem)]` mis-measured by ~2rem and clipped the
+            last service / case-study card behind the footer. */}
+        <ScrollArea className="flex-1 min-h-0 px-6">
+          <FieldGroup className="py-6 pb-10">
             <Field>
               <FieldLabel htmlFor="agency-name">{t("name")}</FieldLabel>
               <Input
@@ -138,7 +142,7 @@ export function AgencyConfigSheet({ open, onOpenChange, agency, onSaved }: Props
           </FieldGroup>
         </ScrollArea>
 
-        <div className="flex items-center justify-end gap-2 border-t border-border bg-sidebar/50 px-6 py-3">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-sidebar/50 px-6 py-3">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
             {t("cancel")}
           </Button>
