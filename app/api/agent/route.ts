@@ -241,13 +241,27 @@ export async function POST(req: Request) {
     }),
   }
 
+  const model = process.env.NEXUS_MODEL || "openai/gpt-5-mini"
+
   const result = streamText({
-    model: "anthropic/claude-opus-4.6",
+    model,
     system: buildSystemPrompt(agency),
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(6),
   })
 
-  return result.toUIMessageStreamResponse()
+  return result.toUIMessageStreamResponse({
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : String(error)
+      console.log("[v0] agent stream error:", message)
+      if (/restricted|credits|abuse/i.test(message)) {
+        return "The Vercel AI Gateway rejected the request: free credits are temporarily restricted on this project. Add paid credits at vercel.com → AI Gateway, or set NEXUS_MODEL to a model your key can use."
+      }
+      if (/AI_GATEWAY_API_KEY|authentication/i.test(message)) {
+        return "AI_GATEWAY_API_KEY is missing or invalid. Add it in Project → Settings → Environment Variables."
+      }
+      return `Agent error: ${message}`
+    },
+  })
 }

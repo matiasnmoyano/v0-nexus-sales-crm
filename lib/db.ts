@@ -1,14 +1,31 @@
 import "server-only"
-import { neon } from "@neondatabase/serverless"
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
 
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL
+let _sql: NeonQueryFunction<false, false> | null = null
 
-if (!connectionString) {
-  // Throw at import time so failures are loud during development.
-  throw new Error("DATABASE_URL is not set. Connect Neon to the project.")
+function getClient(): NeonQueryFunction<false, false> {
+  if (_sql) return _sql
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set. Connect Neon to the project.")
+  }
+  _sql = neon(connectionString)
+  return _sql
 }
 
-export const sql = neon(connectionString)
+// Proxy that defers client creation until the first query — keeps module
+// imports cheap and avoids hard failures during build / when env is missing.
+export const sql = new Proxy(function () {} as unknown as NeonQueryFunction<false, false>, {
+  apply(_target, _thisArg, argArray) {
+    const fn = getClient() as unknown as (...args: unknown[]) => unknown
+    return fn.apply(_thisArg, argArray)
+  },
+  get(_target, prop, receiver) {
+    const client = getClient() as unknown as Record<string, unknown>
+    const value = client[prop as string]
+    return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(client) : value
+  },
+}) as NeonQueryFunction<false, false>
 
 let schemaPromise: Promise<void> | null = null
 
