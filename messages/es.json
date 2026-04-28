@@ -1,4 +1,213 @@
 {
+  "landing": {
+    "meta": {
+      "title": "Nexus Sales — Agente de ventas con IA para agencias",
+      "description": "Investigá empresas, detectá oportunidades reales y generá copy personalizado en segundos. Cero envío automático: el humano decide siempre."
+    },
+    "nav": {
+      "howItWorks": "Cómo funciona",
+      "demo": "Demo",
+      "stack": "Stack",
+      "faq": "FAQ",
+      "openApp": "Abrir app"
+    },
+    "hero": {
+      "eyebrow": "Live · Vercel Zero to Agent",
+      "title": "Tu próximo cliente ya está en internet. Encontralo, entendelo, escribile.",
+      "subtitle": "Nexus Sales es un agente que investiga empresas, detecta oportunidades reales y genera mensajes de prospección personalizados. Cero envío automático: vos seguís siendo dueño del momento.",
+      "ctaPrimary": "Probar el agente ahora",
+      "ctaSecondary": "Abrir el dashboard",
+      "poweredBy": "Construido sobre",
+      "demo": {
+        "liveBadge": "Demo en vivo",
+        "title": "Probá con una empresa real",
+        "placeholder": "URL de la empresa…",
+        "analyzeButton": "Analizar",
+        "suggestions": "Probá",
+        "viewFullCopy": "Ver el copy completo en la app",
+        "remaining": "{count, plural, =0 {Sin demos restantes} one {# demo restante en esta hora} other {# demos restantes en esta hora}}",
+        "processing": "procesando",
+        "slowHint": "El primer análisis puede tardar hasta 15s — el agente está leyendo el sitio.",
+        "phases": {
+          "search": "Buscando sitio",
+          "scrape": "Scrapeando contenido",
+          "analyze": "Analizando señales",
+          "score": "Calculando lead score"
+        },
+        "result": {
+          "score": "Lead score",
+          "copyPreview": "Preview del email",
+          "solution": {
+            "automation": "Automatización",
+            "custom_software": "Software a medida"
+          }
+        }
+      }
+    },
+    "howItWorks": {
+      "kicker": "Cómo funciona",
+      "title": "Tres pasos. Cero magia. Mucha investigación.",
+      "subtitle": "Lo mismo que harías a mano, en el tiempo que tarda un café.",
+      "step1": {
+        "number": "01",
+        "title": "Investigá",
+        "desc": "Pegá una URL o un nombre. Firecrawl + Exa indexan el sitio y la presencia digital del lead en vivo."
+      },
+      "step2": {
+        "number": "02",
+        "title": "Entendé",
+        "desc": "El agente identifica rubro, fricciones reales y calcula un Lead Score con criterios explícitos."
+      },
+      "step3": {
+        "number": "03",
+        "title": "Escribí",
+        "desc": "Copy personalizado para Email, LinkedIn y WhatsApp, más follow-ups a 3 y 7 días. Listo para enviar."
+      }
+    },
+    "philosophy": {
+      "kicker": "Filosofía",
+      "title": "El humano envía. La IA pensaba que eso era debilidad. No lo es.",
+      "body1": "Construimos Nexus Sales con una decisión deliberada: cero envío automático.",
+      "body2": "Otros agentes se autopromocionan diciendo «mandá 1000 emails sin mover un dedo». Nosotros pensamos al revés: el agente hace el trabajo invisible —investigar, entender, escribir— para que vos hagas el trabajo que importa: decidir cuándo y cómo contactar a alguien.",
+      "body3": "Resultado: tasas de respuesta de outbound humano, con la velocidad de outbound automatizado.",
+      "othersTitle": "Otros agentes",
+      "ourTitle": "Nexus Sales",
+      "othersList": [
+        "Spam masivo a listas compradas",
+        "Templates obvios y repetidos",
+        "0% personalización real",
+        "Sin contexto del negocio del lead",
+        "Te quema el dominio"
+      ],
+      "ourList": [
+        "Investigación profunda por cada lead",
+        "Copy con evidencia específica del sitio",
+        "El humano decide siempre el momento",
+        "Lead Score con criterios transparentes",
+        "Tono que copia el de tu agencia"
+      ]
+    },
+    "stack": {
+      "kicker": "Stack técnico",
+      "title": "Construido con lo último de Vercel.",
+      "subtitle": "Cada capa pensada para correr en producción, no para una demo.",
+      "track": "Track del hackathon: v0 + MCPs · 100% deployado en Vercel",
+      "items": {
+        "next": {
+          "title": "Next.js 16",
+          "desc": "App Router con Server Actions, streaming, RSC y Turbopack como bundler default.",
+          "tag": "App Router"
+        },
+        "gateway": {
+          "title": "Vercel AI Gateway",
+          "desc": "GPT-5 mini y Claude detrás de un único endpoint, con observabilidad y fallback.",
+          "tag": "Streaming"
+        },
+        "neon": {
+          "title": "Neon Postgres",
+          "desc": "Persistencia serverless de leads, mensajes y configuración de agencia.",
+          "tag": "Serverless"
+        },
+        "firecrawl": {
+          "title": "Firecrawl MCP",
+          "desc": "Scrapeo del sitio del lead con limpieza y extracción de contenido relevante.",
+          "tag": "Web extraction"
+        },
+        "exa": {
+          "title": "Exa MCP",
+          "desc": "Búsqueda web semántica para encontrar señales adicionales del lead.",
+          "tag": "Semantic search"
+        },
+        "shadcn": {
+          "title": "shadcn/ui · Framer · Tailwind",
+          "desc": "Componentes accesibles, animaciones livianas y un theme dark coherente.",
+          "tag": "UI"
+        }
+      }
+    },
+    "showcase": {
+      "kicker": "Producto",
+      "title": "Tres paneles. Una decisión.",
+      "liveLabel": "● Live",
+      "cta": "Probar el agente completo",
+      "mock": {
+        "lead": "Lead seleccionado",
+        "pain": "Pain",
+        "capacity": "Capacidad",
+        "fit": "Fit",
+        "streaming": "Streaming"
+      },
+      "annotations": {
+        "streaming": "Análisis en streaming en vivo",
+        "channels": "3 canales · 6 mensajes por lead",
+        "pipeline": "Pipeline visual con drag & drop"
+      }
+    },
+    "useCases": {
+      "kicker": "Casos de uso",
+      "title": "¿Para quién es?",
+      "agencies": {
+        "title": "Agencias de software",
+        "desc": "Detectá pymes con procesos manuales que necesitan automatización o software a medida.",
+        "example": "Ej.: e-commerce con stock sincronizado a mano entre 4 depósitos."
+      },
+      "freelancers": {
+        "title": "Freelancers",
+        "desc": "Convertí cada visita a un sitio web en una oportunidad calificada con argumentos concretos.",
+        "example": "Ej.: estudio jurídico con formularios de contacto rotos."
+      },
+      "teams": {
+        "title": "Equipos B2B",
+        "desc": "Investigación profunda de leads en segundos, no en horas. Tu SDR rinde el doble.",
+        "example": "Ej.: SaaS con 50 cuentas enterprise por contactar este mes."
+      }
+    },
+    "faq": {
+      "kicker": "FAQ",
+      "title": "Preguntas frecuentes",
+      "items": {
+        "noAuto": {
+          "q": "¿Por qué no envía los mensajes automáticamente?",
+          "a": "Porque la diferencia entre outbound humano y outbound spam es justamente esa: que alguien decida si vale la pena escribirle a esa persona en ese momento. El agente hace el trabajo de investigación y redacción; vos decidís cuándo apretar enviar."
+        },
+        "privacy": {
+          "q": "¿Qué pasa con la información de las empresas que analiza?",
+          "a": "Sólo procesamos contenido público de los sitios que vos le pedís analizar. No guardamos nada que no esté ya disponible en internet, y los análisis viven en tu cuenta de Neon — no se comparten."
+        },
+        "score": {
+          "q": "¿Cómo se calcula el Lead Score?",
+          "a": "Es una suma ponderada de cuatro criterios: encaje con tu catálogo (30 pts), fricción digital visible (25 pts), capacidad de inversión (25 pts) y urgencia / timing (20 pts). Cada lead muestra el desglose para que entiendas el por qué."
+        },
+        "customize": {
+          "q": "¿Puedo personalizar el agente para mi agencia?",
+          "a": "Sí. La pantalla «Configuración de agencia» edita el brief que el agente usa: tu propuesta de valor, tono, servicios y casos de éxito. Cuanto más específico, mejor el copy."
+        },
+        "models": {
+          "q": "¿Qué modelos de IA usa por debajo?",
+          "a": "Por defecto GPT-5 mini vía Vercel AI Gateway. Es swappable a Claude 4.6 o Gemini 3 con una variable de entorno (NEXUS_MODEL)."
+        },
+        "pricing": {
+          "q": "¿Cuánto cuesta?",
+          "a": "Open source para el hackathon. Si lo querés correr en tu cuenta, los costos son los de tu Vercel + Neon + AI Gateway. La demo pública del hero está limitada a 3 análisis por hora por IP."
+        }
+      }
+    },
+    "finalCta": {
+      "kicker": "Empezá ahora",
+      "title": "Tu pipeline empieza con un solo input.",
+      "subtitle": "Pegá una URL. Mirá al agente trabajar. Decidí vos.",
+      "button": "Probar Nexus Sales"
+    },
+    "footer": {
+      "tagline": "Built for Vercel Zero to Agent · Abril 2026",
+      "links": {
+        "github": "GitHub",
+        "twitter": "X",
+        "vercel": "Vercel",
+        "app": "Abrir app"
+      }
+    }
+  },
   "boot": "Iniciando Nexus…",
   "header": {
     "tagline": "Sistema operativo de ventas con IA",

@@ -58,6 +58,7 @@
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-display: 'Plus Jakarta Sans', 'Geist', system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -151,4 +152,74 @@
 }
 .nexus-pulse-dot {
   animation: nexus-pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* Landing-only signature gradient. Used for borders, headlines, glows. */
+.landing-gradient {
+  background-image: linear-gradient(135deg, #22d3ee 0%, #818cf8 50%, #c084fc 100%);
+}
+.landing-gradient-text {
+  background-image: linear-gradient(135deg, #22d3ee 0%, #a78bfa 60%, #f0abfc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Animated hairline gradient that travels along a connector. */
+@keyframes nexus-line-travel {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.landing-connector {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(34, 211, 238, 0.0) 20%,
+    rgba(34, 211, 238, 0.6) 45%,
+    rgba(192, 132, 252, 0.6) 55%,
+    transparent 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: nexus-line-travel 4s linear infinite;
+}
+
+/* Slow rotating border glow — applied via ::before with mask trick.
+   Inspired by the "spotlight border" pattern. */
+@keyframes nexus-spin-slow {
+  to { transform: rotate(1turn); }
+}
+.landing-border-glow {
+  position: relative;
+  isolation: isolate;
+}
+.landing-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 0turn,
+    rgba(34, 211, 238, 0) 0%,
+    rgba(34, 211, 238, 0.6) 25%,
+    rgba(192, 132, 252, 0.6) 50%,
+    rgba(34, 211, 238, 0) 75%,
+    rgba(34, 211, 238, 0) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: nexus-spin-slow 6s linear infinite;
+  z-index: -1;
+}
+
+/* Reduced-motion safety net. */
+@media (prefers-reduced-motion: reduce) {
+  .nexus-pulse-dot,
+  .landing-connector,
+  .landing-border-glow::before {
+    animation: none !important;
+  }
 }
