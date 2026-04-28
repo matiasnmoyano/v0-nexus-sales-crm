@@ -276,6 +276,13 @@
       "savedAs": "saved as lead",
       "score": "score"
     },
+    "phases": {
+      "thinking": "Thinking",
+      "reading": "Reading the site",
+      "analyzing": "Analysing signals",
+      "drafting": "Drafting analysis",
+      "saving": "Saving as lead"
+    },
     "savedToast": "{company} analysed · score {score}"
   },
   "statuses": {

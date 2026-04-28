@@ -32,6 +32,47 @@ const EXAMPLES = [
   "https://www.attio.com",
 ]
 
+interface UIPart {
+  type: string
+  text?: string
+  state?: string
+  input?: unknown
+  output?: unknown
+  errorText?: string
+}
+
+type Phase = "thinking" | "reading" | "analyzing" | "drafting" | "saving"
+
+/**
+ * Inspect the latest assistant message to figure out what the agent is
+ * doing right *now*. Used to drive the WorkingIndicator while streaming.
+ *
+ * Order of precedence (newest signals win):
+ *   - save_analysis tool running       → "saving"
+ *   - scrape_website tool running      → "reading"
+ *   - last completed part is scrape    → "analyzing" (LLM is reasoning post-scrape)
+ *   - last part is text being streamed → "drafting"
+ *   - no parts yet                     → "thinking"
+ */
+function derivePhase(messages: Array<{ role: string; parts?: UIPart[] }>): Phase {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i]
+    if (m.role !== "assistant") continue
+    const parts = m.parts ?? []
+    if (parts.length === 0) return "thinking"
+    const last = parts[parts.length - 1]
+    if (last.type === "tool-save_analysis") return "saving"
+    if (last.type === "tool-scrape_website") {
+      // Tool already finished but no follow-up part yet → LLM is reasoning.
+      if (last.state === "output-available") return "analyzing"
+      return "reading"
+    }
+    if (last.type === "text") return "drafting"
+    return "thinking"
+  }
+  return "thinking"
+}
+
 export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
   const t = useTranslations("copilot")
   const locale = useLocale()
@@ -70,6 +111,23 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
   }, [messages, status])
 
   const isStreaming = status === "streaming" || status === "submitted"
+  const phase: Phase = isStreaming ? derivePhase(messages) : "thinking"
+
+  // Index of the currently-streaming text part, used to append a typing caret.
+  // Only the last text part of the last assistant message can be "live".
+  const liveTextLocator = (() => {
+    if (status !== "streaming") return null
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i]
+      if (m.role !== "assistant" || !m.parts || m.parts.length === 0) continue
+      const last = m.parts[m.parts.length - 1]
+      if (last.type === "text") {
+        return { messageId: (m as { id?: string }).id, partIndex: m.parts.length - 1 }
+      }
+      return null
+    }
+    return null
+  })()
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -116,8 +174,19 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
           {messages.length === 0 ? (
             <Welcome agency={agency} onPick={(s) => setInput(s)} />
           ) : (
-            messages.map((m) => <MessageItem key={m.id} message={m} />)
+            messages.map((m) => (
+              <MessageItem
+                key={m.id}
+                message={m as { id: string; role: string; parts?: UIPart[] }}
+                liveTextLocator={liveTextLocator}
+              />
+            ))
           )}
+
+          {/* While streaming, always render a phase indicator at the end.
+              Hidden when the last visible signal is already a streaming text
+              bubble (the typing caret is the indicator in that case). */}
+          {isStreaming && phase !== "drafting" && <WorkingIndicator phase={phase} />}
 
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
@@ -162,6 +231,38 @@ export function CopilotPanel({ agency, onAnalysisSaved }: Props) {
         </div>
       </form>
     </aside>
+  )
+}
+
+/**
+ * Single source of truth for "what is the agent doing right now?"
+ * Renders an inline pill with a pulsing dot, the phase label (shimmering),
+ * and three bouncing dots for the early "thinking" moment.
+ */
+function WorkingIndicator({ phase }: { phase: Phase }) {
+  const t = useTranslations("copilot.phases")
+  const label = t(phase)
+  return (
+    <div
+      className="flex items-center gap-2.5 rounded-md border border-border/60 bg-card/40 px-3 py-2"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="relative flex size-2 shrink-0 items-center justify-center">
+        <span className="absolute inset-0 rounded-full bg-primary/40 nexus-pulse-dot" />
+        <span className="size-1.5 rounded-full bg-primary" />
+      </span>
+      <span className="font-mono text-[11px] uppercase tracking-wider nexus-shimmer-text">
+        {label}
+      </span>
+      {phase === "thinking" && (
+        <span className="nexus-thinking-dots ml-auto" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -212,16 +313,13 @@ function Welcome({
   )
 }
 
-interface UIPart {
-  type: string
-  text?: string
-  state?: string
-  input?: unknown
-  output?: unknown
-  errorText?: string
-}
-
-function MessageItem({ message }: { message: { role: string; parts?: UIPart[] } }) {
+function MessageItem({
+  message,
+  liveTextLocator,
+}: {
+  message: { id: string; role: string; parts?: UIPart[] }
+  liveTextLocator: { messageId?: string; partIndex: number } | null
+}) {
   if (message.role === "user") {
     const text =
       message.parts
@@ -237,16 +335,22 @@ function MessageItem({ message }: { message: { role: string; parts?: UIPart[] } 
     )
   }
 
+  const parts = message.parts ?? []
   return (
     <div className="space-y-2">
-      {(message.parts ?? []).map((part, i) => {
+      {parts.map((part, i) => {
         if (part.type === "text") {
+          const isLive =
+            liveTextLocator !== null &&
+            liveTextLocator.messageId === message.id &&
+            liveTextLocator.partIndex === i
           return (
             <div
               key={i}
               className="rounded-md border border-border bg-card px-3.5 py-3 text-sm leading-relaxed text-foreground"
             >
               <span className="whitespace-pre-wrap">{part.text}</span>
+              {isLive && <span className="nexus-caret" aria-hidden="true" />}
             </div>
           )
         }
@@ -276,6 +380,7 @@ function ToolShell({
   const t = useTranslations("copilot.tools")
   const isError = state === "output-error"
   const isDone = state === "output-available"
+  const isRunning = state === "input-streaming" || state === "input-available"
   return (
     <div
       className={cn(
@@ -293,7 +398,7 @@ function ToolShell({
               : "bg-primary/15 text-primary",
         )}
       >
-        {state === "input-streaming" || state === "input-available" ? (
+        {isRunning ? (
           <Loader2 className="size-3 animate-spin" />
         ) : isDone ? (
           <CheckCircle2 className="size-3" />
@@ -305,17 +410,16 @@ function ToolShell({
       </div>
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+          <span
+            className={cn(
+              "font-mono text-[11px] uppercase tracking-wider",
+              isRunning ? "text-foreground nexus-shimmer-text" : "text-muted-foreground",
+            )}
+          >
             {label}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground/70">
-            {state === "input-streaming" || state === "input-available"
-              ? t("running")
-              : isDone
-                ? t("done")
-                : isError
-                  ? t("error")
-                  : ""}
+            {isRunning ? t("running") : isDone ? t("done") : isError ? t("error") : ""}
           </span>
         </div>
         {children}

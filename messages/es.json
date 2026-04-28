@@ -276,6 +276,13 @@
       "savedAs": "guardado como lead",
       "score": "score"
     },
+    "phases": {
+      "thinking": "Pensando",
+      "reading": "Leyendo el sitio",
+      "analyzing": "Analizando señales",
+      "drafting": "Redactando análisis",
+      "saving": "Guardando como lead"
+    },
     "savedToast": "{company} analizado · score {score}"
   },
   "statuses": {
