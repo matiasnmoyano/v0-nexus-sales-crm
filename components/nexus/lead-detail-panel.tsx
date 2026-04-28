@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Sparkles,
   Trash2,
+  Wand2,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { ScoreRing } from "./score-ring"
@@ -48,6 +49,8 @@ interface Props {
   lead: Lead | null
   onStatusChange: (id: string, status: LeadStatus) => void
   onDelete: (id: string) => void
+  onRefine: (id: string) => void
+  isActiveInCopilot: boolean
 }
 
 const STATUS_DOT: Record<LeadStatus, string> = {
@@ -58,7 +61,13 @@ const STATUS_DOT: Record<LeadStatus, string> = {
   discarded: "bg-muted-foreground/40",
 }
 
-export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
+export function LeadDetailPanel({
+  lead,
+  onStatusChange,
+  onDelete,
+  onRefine,
+  isActiveInCopilot,
+}: Props) {
   const t = useTranslations()
   const locale = useLocale()
   const [messages, setMessages] = useState<Message[]>([])
@@ -118,13 +127,25 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
           </span>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8">
-              <MoreHorizontal className="size-4" />
-              <span className="sr-only">{t("leadDetail.leadActions")}</span>
-            </Button>
-          </DropdownMenuTrigger>
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            size="sm"
+            variant={isActiveInCopilot ? "secondary" : "outline"}
+            onClick={() => onRefine(lead.id)}
+            disabled={isActiveInCopilot}
+            className="h-7 gap-1.5 font-mono text-[11px]"
+          >
+            <Wand2 className="size-3" />
+            {t("copilot.openInCopilot")}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8">
+                <MoreHorizontal className="size-4" />
+                <span className="sr-only">{t("leadDetail.leadActions")}</span>
+              </Button>
+            </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
               {t("leadDetail.moveTo")}
@@ -149,8 +170,9 @@ export function LeadDetailPanel({ lead, onStatusChange, onDelete }: Props) {
               <Trash2 className="size-3.5" />
               {t("leadDetail.deleteLead")}
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <ScrollArea className="flex-1 min-h-0">

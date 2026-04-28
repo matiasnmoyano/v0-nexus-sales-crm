@@ -268,12 +268,14 @@
     "tools": {
       "scrape": "Scrape website",
       "save": "Save analysis",
+      "refine": "Update lead",
       "running": "running",
       "done": "done",
       "error": "error",
       "scrapeFailed": "scrape failed",
       "charsExtracted": "chars extracted",
       "savedAs": "saved as lead",
+      "refinedAs": "lead updated",
       "score": "score"
     },
     "phases": {
@@ -281,9 +283,25 @@
       "reading": "Reading the site",
       "analyzing": "Analysing signals",
       "drafting": "Drafting analysis",
-      "saving": "Saving as lead"
+      "saving": "Saving as lead",
+      "refining": "Updating lead"
     },
-    "savedToast": "{company} analysed · score {score}"
+    "refineChip": {
+      "label": "Refining",
+      "score": "score {score}",
+      "remove": "Close lead context"
+    },
+    "refinePlaceholder": "Ask for any change: \"make it more casual\", \"wrong industry, drop the score\", \"rewrite the LinkedIn DM\"…",
+    "refineHint": "Any change overwrites this lead and its drafts.",
+    "recent": {
+      "title": "Recent leads",
+      "subtitle": "Click one to resume the conversation",
+      "empty": "No leads yet"
+    },
+    "loadingHistory": "Loading conversation…",
+    "savedToast": "{company} analysed · score {score}",
+    "refinedToast": "{company} updated · score {score}",
+    "openInCopilot": "Refine in Co-Pilot"
   },
   "statuses": {
     "analyzed": "Analyzed",

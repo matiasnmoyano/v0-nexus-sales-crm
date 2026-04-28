@@ -268,12 +268,14 @@
     "tools": {
       "scrape": "Scrape de sitio",
       "save": "Guardar análisis",
+      "refine": "Actualizar lead",
       "running": "ejecutando",
       "done": "listo",
       "error": "error",
       "scrapeFailed": "scrape falló",
       "charsExtracted": "caracteres extraídos",
       "savedAs": "guardado como lead",
+      "refinedAs": "lead actualizado",
       "score": "score"
     },
     "phases": {
@@ -281,9 +283,25 @@
       "reading": "Leyendo el sitio",
       "analyzing": "Analizando señales",
       "drafting": "Redactando análisis",
-      "saving": "Guardando como lead"
+      "saving": "Guardando como lead",
+      "refining": "Actualizando el lead"
     },
-    "savedToast": "{company} analizado · score {score}"
+    "refineChip": {
+      "label": "Refinando",
+      "score": "score {score}",
+      "remove": "Cerrar contexto del lead"
+    },
+    "refinePlaceholder": "Pedile cambios: \"hacelo más casual\", \"el rubro no es el nuestro, bajá score\", \"reescribí el LinkedIn\"…",
+    "refineHint": "Cualquier cambio reescribe este lead y sus borradores.",
+    "recent": {
+      "title": "Leads recientes",
+      "subtitle": "Cliquealos para retomar la conversación",
+      "empty": "Sin leads todavía"
+    },
+    "loadingHistory": "Cargando conversación…",
+    "savedToast": "{company} analizado · score {score}",
+    "refinedToast": "{company} actualizado · score {score}",
+    "openInCopilot": "Refinar en Co-Pilot"
   },
   "statuses": {
     "analyzed": "Analizado",

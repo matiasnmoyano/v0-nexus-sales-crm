@@ -153,3 +153,55 @@ export async function upsertMessage(input: {
   revalidatePath("/")
   return row
 }
+
+// ---------------------------------------------------------------------------
+// Chat history (Co-Pilot threads bound to leads)
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal shape compatible with the AI SDK 6 `UIMessage` type — kept loose
+ * (parts: unknown[]) on purpose so we don't import the SDK types into
+ * generic server actions.
+ */
+export interface PersistedChatMessage {
+  id: string
+  role: "user" | "assistant" | "system"
+  parts: unknown[]
+}
+
+/**
+ * Load the full chat history of a lead in chronological order, ready to be
+ * fed into `useChat`'s `setMessages`.
+ */
+export async function getChatHistory(leadId: string): Promise<PersistedChatMessage[]> {
+  await ensureSchema()
+  const rows = (await sql`
+    select id, role, parts
+    from chat_messages
+    where lead_id = ${leadId}
+    order by created_at asc, id asc
+  `) as Array<{ id: string; role: PersistedChatMessage["role"]; parts: unknown[] }>
+  return rows
+}
+
+export async function clearChatHistory(leadId: string): Promise<void> {
+  await ensureSchema()
+  await sql`delete from chat_messages where lead_id = ${leadId}`
+}
+
+/**
+ * The 5 most recently touched leads, used in the Co-Pilot empty state so
+ * the user can jump straight back into a thread.
+ */
+export async function getRecentLeads(limit = 5): Promise<
+  Array<Pick<Lead, "id" | "company_name" | "lead_score" | "suggested_solution" | "status">>
+> {
+  await ensureSchema()
+  const rows = (await sql`
+    select id, company_name, lead_score, suggested_solution, status
+    from leads
+    order by updated_at desc
+    limit ${limit}
+  `) as Array<Pick<Lead, "id" | "company_name" | "lead_score" | "suggested_solution" | "status">>
+  return rows
+}

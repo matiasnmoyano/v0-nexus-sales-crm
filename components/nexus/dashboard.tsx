@@ -22,10 +22,19 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
   const [agency, setAgency] = useState<AgencyConfig>(initialAgency)
   const [selectedId, setSelectedId] = useState<string | null>(initialLeads[0]?.id ?? null)
   const [agencySheetOpen, setAgencySheetOpen] = useState(false)
+  // Lead currently bound to the Co-Pilot for refinement. Independent from
+  // `selectedId` (the lead being viewed in the detail panel) — the user may
+  // browse other leads while continuing to chat about a specific one.
+  const [activeLeadId, setActiveLeadId] = useState<string | null>(null)
 
   const selectedLead = useMemo(
     () => leads.find((l) => l.id === selectedId) ?? null,
     [leads, selectedId],
+  )
+
+  const activeLead = useMemo(
+    () => leads.find((l) => l.id === activeLeadId) ?? null,
+    [leads, activeLeadId],
   )
 
   const refreshLeads = useCallback(async () => {
@@ -35,21 +44,30 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
   }, [])
 
   const handleAgentComplete = useCallback(
-    async (leadId: string) => {
+    async (leadId: string, mode: "created" | "refined") => {
       const fresh = await refreshLeads()
-      const newLead = fresh.find((l) => l.id === leadId)
-      if (newLead) {
-        setSelectedId(newLead.id)
+      const lead = fresh.find((l) => l.id === leadId)
+      if (lead) {
+        setSelectedId(lead.id)
+        // After a brand-new analysis, automatically pin the lead so the user
+        // can immediately ask for refinements ("hacelo más casual"). On a
+        // refinement turn the lead is already pinned.
+        if (mode === "created") setActiveLeadId(lead.id)
         toast.success(
-          t("copilot.savedToast", {
-            company: newLead.company_name,
-            score: newLead.lead_score,
+          t(mode === "refined" ? "copilot.refinedToast" : "copilot.savedToast", {
+            company: lead.company_name,
+            score: lead.lead_score,
           }),
         )
       }
     },
     [refreshLeads, t],
   )
+
+  const handleRefine = useCallback((id: string) => {
+    setActiveLeadId(id)
+    setSelectedId(id)
+  }, [])
 
   const handleStatusChange = useCallback(
     async (id: string, status: LeadStatus) => {
@@ -73,6 +91,9 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
         const next = previous.find((l) => l.id !== id)
         setSelectedId(next?.id ?? null)
       }
+      // If the deleted lead was bound to the Co-Pilot, drop the binding —
+      // chat history was cascaded via the FK and the thread is now orphaned.
+      if (activeLeadId === id) setActiveLeadId(null)
       try {
         await deleteLead(id)
         toast.success(t("toasts.leadRemoved"))
@@ -81,7 +102,7 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
         setLeads(previous)
       }
     },
-    [leads, selectedId, t],
+    [leads, selectedId, activeLeadId, t],
   )
 
   // refresh selected lead from DB whenever it changes — keeps messages fresh
@@ -116,9 +137,20 @@ export function NexusDashboard({ initialLeads, initialAgency }: Props) {
           onStatusChange={handleStatusChange}
         />
 
-        <LeadDetailPanel lead={selectedFull} onStatusChange={handleStatusChange} onDelete={handleDelete} />
+        <LeadDetailPanel
+          lead={selectedFull}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onRefine={handleRefine}
+          isActiveInCopilot={!!activeLeadId && selectedFull?.id === activeLeadId}
+        />
 
-        <CopilotPanel agency={agency} onAnalysisSaved={handleAgentComplete} />
+        <CopilotPanel
+          agency={agency}
+          activeLead={activeLead}
+          onActiveLeadChange={setActiveLeadId}
+          onAnalysisSaved={handleAgentComplete}
+        />
       </div>
 
       <AgencyConfigSheet

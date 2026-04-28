@@ -85,6 +85,24 @@ export function ensureSchema(): Promise<void> {
 
       await sql`create index if not exists idx_messages_lead on messages(lead_id)`
 
+      // Per-lead chat history for the Co-Pilot. We store the UIMessage id as
+      // the PK so we can safely upsert the entire thread after each streaming
+      // turn (idempotent). `parts` keeps the full UIMessage parts array so
+      // tool calls / scrape cards re-render identically when reloaded.
+      await sql`
+        create table if not exists chat_messages (
+          id text primary key,
+          lead_id uuid not null references leads(id) on delete cascade,
+          role text not null check (role in ('user','assistant','system')),
+          parts jsonb not null default '[]'::jsonb,
+          created_at timestamptz not null default now()
+        )
+      `
+      await sql`
+        create index if not exists idx_chat_messages_lead_created
+          on chat_messages(lead_id, created_at)
+      `
+
       // Seed the default agency profile only when the table is empty.
       await sql`
         insert into agency_config (name, description, services, case_studies, tone)

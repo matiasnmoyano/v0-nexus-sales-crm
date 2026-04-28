@@ -1,7 +1,7 @@
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage } from "ai"
 import { z } from "zod"
 import { sql, ensureSchema } from "@/lib/db"
-import { getAgencyConfig } from "@/app/actions"
+import { getAgencyConfig, getLead, listMessagesForLead } from "@/app/actions"
 
 export const maxDuration = 60
 
@@ -45,6 +45,7 @@ const ANALYSIS_SCHEMA = z.object({
   }),
 })
 
+type AnalysisInput = z.infer<typeof ANALYSIS_SCHEMA>
 type AgentLocale = "es" | "en"
 
 function languageInstructions(locale: AgentLocale) {
@@ -56,6 +57,12 @@ RESPONDÉ ÍNTEGRAMENTE EN ESPAÑOL RIOPLATENSE. Todos los problemas detectados,
 RESPOND ENTIRELY IN ENGLISH. All detected problems, justifications, reasoning prose, and outreach drafts (email, LinkedIn, WhatsApp) must be written in English. Do not mix Spanish except for proper nouns or technical terms with no natural translation.`
 }
 
+interface RefineContext {
+  leadId: string
+  lead: Awaited<ReturnType<typeof getLead>>
+  drafts: Awaited<ReturnType<typeof listMessagesForLead>>
+}
+
 function buildSystemPrompt(
   agency: {
     name: string
@@ -65,8 +72,9 @@ function buildSystemPrompt(
     tone: string
   },
   locale: AgentLocale,
+  refine: RefineContext | null,
 ) {
-  return `You are the senior sales analyst at ${agency.name}.
+  const base = `You are the senior sales analyst at ${agency.name}.
 
 ${languageInstructions(locale)}
 
@@ -80,7 +88,11 @@ ${agency.services.map((s) => `- ${s.title}: ${s.detail}`).join("\n")}
 ${agency.case_studies.map((c) => `- ${c.title}: ${c.detail}`).join("\n")}
 
 ## Voice / tone
-${agency.tone}
+${agency.tone}`
+
+  // ---- New-lead flow --------------------------------------------------
+  if (!refine || !refine.lead) {
+    return `${base}
 
 # Your job
 Given a lead (a website URL or a free-text description) you must:
@@ -109,6 +121,52 @@ Given a lead (a website URL or a free-text description) you must:
 - Reasoning before tool calls is encouraged; reasoning after \`save_analysis\` is forbidden.
 - Never fabricate scraped content. If \`scrape_website\` fails, say so and proceed with whatever the user described.
 - Keep prose tight, no marketing fluff, no bullet-point spam.`
+  }
+
+  // ---- Refinement flow ------------------------------------------------
+  const lead = refine.lead
+  const draftBlock = refine.drafts
+    .map((d) => `### ${d.channel} · ${d.type}\n${d.content}`)
+    .join("\n\n")
+
+  return `${base}
+
+# Refinement mode
+You are refining an EXISTING lead with the user. The user will tell you what they want to change ("make it more casual", "lower the score, the industry isn't ours", "change the email opener", etc).
+
+## Current state of the lead
+- Company: ${lead.company_name}
+- URL: ${lead.url ?? "—"}
+- Industry: ${lead.industry ?? "—"}
+- Suggested solution: ${lead.suggested_solution}
+- Lead score: ${lead.lead_score}
+  - digital_pain: ${lead.score_breakdown?.digital_pain ?? "—"}
+  - buying_capacity: ${lead.score_breakdown?.buying_capacity ?? "—"}
+  - service_fit: ${lead.score_breakdown?.service_fit ?? "—"}
+
+### Detected problems
+${(lead.detected_problems ?? []).map((p) => `- **${p.title}** — ${p.evidence}`).join("\n") || "—"}
+
+### Score reasoning
+${lead.score_breakdown?.reason ?? "—"}
+
+### Solution justification
+${lead.solution_justification}
+
+### Current outreach drafts
+${draftBlock || "—"}
+
+# How to work
+1. Briefly acknowledge the change requested in 1-2 sentences (in plain prose).
+2. If — and only if — the user wants you to look at the website again (e.g. "re-check their pricing page"), you MAY call \`scrape_website\`. Otherwise DO NOT scrape.
+3. Re-think the analysis HOLISTICALLY. The user might ask to change one thing, but if that change implies others (e.g. lowering the score affects the email tone), update those too.
+4. Call the \`refine_lead\` tool **exactly once** with the FULL updated payload. Keep unchanged fields identical to the current state above. Do not call \`save_analysis\` — that tool is disabled in refinement mode.
+5. Do not write prose after the tool call.
+
+# Hard rules
+- Always return the FULL structured analysis to \`refine_lead\`, even if only one field changed. Never partial.
+- Match the agency tone exactly.
+- Never invent metrics. If lowering buying_capacity, justify it from observable evidence.`
 }
 
 async function scrapeWebsite(rawUrl: string): Promise<{
@@ -133,7 +191,6 @@ async function scrapeWebsite(rawUrl: string): Promise<{
 
   const html = await res.text()
 
-  // Drop scripts / styles / svgs entirely.
   const cleaned = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
@@ -164,112 +221,209 @@ async function scrapeWebsite(rawUrl: string): Promise<{
   }
 }
 
+/**
+ * Persist outreach drafts and (insert or update) the lead row.
+ * Used by both `save_analysis` (insert) and `refine_lead` (update).
+ */
+async function writeOutreachMessages(leadId: string, m: AnalysisInput["messages"]) {
+  const inserts: Array<{ channel: string; type: string; content: string }> = [
+    { channel: "email", type: "initial", content: m.email_initial },
+    { channel: "email", type: "followup_d3", content: m.email_d3 },
+    { channel: "email", type: "followup_d7", content: m.email_d7 },
+    { channel: "linkedin", type: "initial", content: m.linkedin_initial },
+    { channel: "whatsapp", type: "initial", content: m.whatsapp_initial },
+  ]
+  for (const row of inserts) {
+    await sql`
+      insert into messages (lead_id, channel, type, content)
+      values (${leadId}, ${row.channel}, ${row.type}, ${row.content})
+      on conflict (lead_id, channel, type)
+      do update set content = excluded.content, created_at = now()
+    `
+  }
+}
+
 export async function POST(req: Request) {
-  const body: { messages: UIMessage[]; locale?: string } = await req.json()
+  const body: { messages: UIMessage[]; locale?: string; leadId?: string } = await req.json()
   const { messages } = body
   const locale: AgentLocale = body.locale === "en" ? "en" : "es"
+  const incomingLeadId = typeof body.leadId === "string" && body.leadId.length > 0 ? body.leadId : null
 
   await ensureSchema()
   const agency = await getAgencyConfig()
 
-  const tools = {
-    scrape_website: tool({
-      description:
-        "Fetch and extract the readable text of a public website. Use this whenever the user provides a URL.",
-      inputSchema: z.object({
-        url: z.string().describe("Full URL of the lead's website."),
-      }),
-      execute: async ({ url }) => {
-        try {
-          const data = await scrapeWebsite(url)
-          return {
-            ok: true,
-            url: data.url,
-            status: data.status,
-            title: data.title,
-            description: data.description,
-            text: data.text,
-            chars: data.text.length,
-          }
-        } catch (err) {
-          return {
-            ok: false,
-            error: err instanceof Error ? err.message : "scrape failed",
-            url,
-          }
-        }
-      },
+  // If the client says we're refining an existing lead, hydrate its current
+  // state so the system prompt can ground the LLM.
+  let refineCtx: RefineContext | null = null
+  if (incomingLeadId) {
+    const lead = await getLead(incomingLeadId)
+    if (lead) {
+      const drafts = await listMessagesForLead(incomingLeadId)
+      refineCtx = { leadId: incomingLeadId, lead, drafts }
+    }
+  }
+
+  // Track the lead id this turn ends up bound to. Starts as the refine
+  // target (if any) and gets overwritten by `save_analysis` when a brand
+  // new lead is created.
+  let boundLeadId: string | null = refineCtx?.leadId ?? null
+
+  // Build the right toolset for the mode. Switching tools (instead of
+  // gating with prose) prevents the model from accidentally creating a
+  // duplicate lead during a refinement turn.
+  const scrapeTool = tool({
+    description:
+      "Fetch and extract the readable text of a public website. Use this whenever the user provides a URL or asks you to re-read the lead's site.",
+    inputSchema: z.object({
+      url: z.string().describe("Full URL of the lead's website."),
     }),
-
-    save_analysis: tool({
-      description:
-        "Persist the final lead qualification + outreach drafts. Call this once, last.",
-      inputSchema: ANALYSIS_SCHEMA,
-      execute: async (analysis) => {
-        const [lead] = (await sql`
-          insert into leads (
-            company_name, url, industry, detected_problems,
-            suggested_solution, solution_justification,
-            lead_score, score_breakdown, status
-          ) values (
-            ${analysis.company_name},
-            ${analysis.url},
-            ${analysis.industry},
-            ${JSON.stringify(analysis.detected_problems)}::jsonb,
-            ${analysis.suggested_solution},
-            ${analysis.solution_justification},
-            ${analysis.lead_score},
-            ${JSON.stringify(analysis.score_breakdown)}::jsonb,
-            'analyzed'
-          )
-          returning id, company_name, lead_score, suggested_solution
-        `) as Array<{
-          id: string
-          company_name: string
-          lead_score: number
-          suggested_solution: string
-        }>
-
-        const m = analysis.messages
-        const inserts: Array<{ channel: string; type: string; content: string }> = [
-          { channel: "email", type: "initial", content: m.email_initial },
-          { channel: "email", type: "followup_d3", content: m.email_d3 },
-          { channel: "email", type: "followup_d7", content: m.email_d7 },
-          { channel: "linkedin", type: "initial", content: m.linkedin_initial },
-          { channel: "whatsapp", type: "initial", content: m.whatsapp_initial },
-        ]
-
-        for (const row of inserts) {
-          await sql`
-            insert into messages (lead_id, channel, type, content)
-            values (${lead.id}, ${row.channel}, ${row.type}, ${row.content})
-            on conflict (lead_id, channel, type)
-            do update set content = excluded.content
-          `
-        }
-
+    execute: async ({ url }) => {
+      try {
+        const data = await scrapeWebsite(url)
         return {
           ok: true,
-          lead_id: lead.id,
-          company_name: lead.company_name,
-          lead_score: lead.lead_score,
-          suggested_solution: lead.suggested_solution,
+          url: data.url,
+          status: data.status,
+          title: data.title,
+          description: data.description,
+          text: data.text,
+          chars: data.text.length,
         }
-      },
-    }),
-  }
+      } catch (err) {
+        return {
+          ok: false,
+          error: err instanceof Error ? err.message : "scrape failed",
+          url,
+        }
+      }
+    },
+  })
+
+  const saveTool = tool({
+    description: "Persist the final lead qualification + outreach drafts. Call this once, last.",
+    inputSchema: ANALYSIS_SCHEMA,
+    execute: async (analysis) => {
+      const [lead] = (await sql`
+        insert into leads (
+          company_name, url, industry, detected_problems,
+          suggested_solution, solution_justification,
+          lead_score, score_breakdown, status
+        ) values (
+          ${analysis.company_name},
+          ${analysis.url},
+          ${analysis.industry},
+          ${JSON.stringify(analysis.detected_problems)}::jsonb,
+          ${analysis.suggested_solution},
+          ${analysis.solution_justification},
+          ${analysis.lead_score},
+          ${JSON.stringify(analysis.score_breakdown)}::jsonb,
+          'analyzed'
+        )
+        returning id, company_name, lead_score, suggested_solution
+      `) as Array<{
+        id: string
+        company_name: string
+        lead_score: number
+        suggested_solution: string
+      }>
+
+      await writeOutreachMessages(lead.id, analysis.messages)
+      boundLeadId = lead.id
+
+      return {
+        ok: true,
+        lead_id: lead.id,
+        company_name: lead.company_name,
+        lead_score: lead.lead_score,
+        suggested_solution: lead.suggested_solution,
+        mode: "created" as const,
+      }
+    },
+  })
+
+  const refineTool = tool({
+    description:
+      "Update the active lead with a refined analysis. The active lead id is implicit in the conversation context — you do not pass it. Call this exactly once at the end of a refinement turn.",
+    inputSchema: ANALYSIS_SCHEMA,
+    execute: async (analysis) => {
+      if (!refineCtx) {
+        return { ok: false, error: "No active lead in refinement context.", mode: "refused" as const }
+      }
+      const [lead] = (await sql`
+        update leads set
+          company_name = ${analysis.company_name},
+          url = ${analysis.url},
+          industry = ${analysis.industry},
+          detected_problems = ${JSON.stringify(analysis.detected_problems)}::jsonb,
+          suggested_solution = ${analysis.suggested_solution},
+          solution_justification = ${analysis.solution_justification},
+          lead_score = ${analysis.lead_score},
+          score_breakdown = ${JSON.stringify(analysis.score_breakdown)}::jsonb,
+          updated_at = now()
+        where id = ${refineCtx.leadId}
+        returning id, company_name, lead_score, suggested_solution
+      `) as Array<{
+        id: string
+        company_name: string
+        lead_score: number
+        suggested_solution: string
+      }>
+
+      await writeOutreachMessages(lead.id, analysis.messages)
+      boundLeadId = lead.id
+
+      return {
+        ok: true,
+        lead_id: lead.id,
+        company_name: lead.company_name,
+        lead_score: lead.lead_score,
+        suggested_solution: lead.suggested_solution,
+        mode: "refined" as const,
+      }
+    },
+  })
+
+  // Mode-specific toolset: never expose `save_analysis` while refining,
+  // and never expose `refine_lead` outside of refinement mode.
+  const tools = refineCtx
+    ? { scrape_website: scrapeTool, refine_lead: refineTool }
+    : { scrape_website: scrapeTool, save_analysis: saveTool }
 
   const model = process.env.NEXUS_MODEL || "openai/gpt-5-mini"
 
   const result = streamText({
     model,
-    system: buildSystemPrompt(agency, locale),
+    system: buildSystemPrompt(agency, locale, refineCtx),
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: stepCountIs(6),
   })
 
   return result.toUIMessageStreamResponse({
+    originalMessages: messages,
+    onFinish: async ({ messages: finalMessages }) => {
+      // Only persist once we know which lead this thread belongs to.
+      // For new-lead flows that's the lead returned by `save_analysis`;
+      // for refinement flows we already had it from the request body.
+      if (!boundLeadId) return
+      try {
+        for (const m of finalMessages) {
+          // Only persist user/assistant turns. system messages (if any) are
+          // server-side only and would corrupt the UIMessage list on reload.
+          if (m.role !== "user" && m.role !== "assistant") continue
+          await sql`
+            insert into chat_messages (id, lead_id, role, parts)
+            values (${m.id}, ${boundLeadId}, ${m.role}, ${JSON.stringify(m.parts ?? [])}::jsonb)
+            on conflict (id) do update set
+              parts = excluded.parts,
+              role = excluded.role
+          `
+        }
+      } catch (err) {
+        // Persistence failures should never break the UI stream — log and move on.
+        console.log("[v0] chat persistence error:", err instanceof Error ? err.message : err)
+      }
+    },
     onError: (error) => {
       const message = error instanceof Error ? error.message : String(error)
       console.log("[v0] agent stream error:", message)
