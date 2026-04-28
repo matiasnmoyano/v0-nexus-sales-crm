@@ -32,6 +32,8 @@ interface Props {
   onActiveLeadChange: (id: string | null) => void
   /** Fired when the agent has either created or refined a lead in the DB. */
   onAnalysisSaved: (leadId: string, mode: "created" | "refined") => void
+  /** Forwarded to root, mostly used for mobile show/hide. */
+  className?: string
 }
 
 const EXAMPLES = [
@@ -89,6 +91,7 @@ export function CopilotPanel({
   activeLead,
   onActiveLeadChange,
   onAnalysisSaved,
+  className,
 }: Props) {
   const t = useTranslations("copilot")
   const locale = useLocale()
@@ -217,7 +220,7 @@ export function CopilotPanel({
   const isRefining = !!activeLead
 
   return (
-    <aside className="flex min-h-0 flex-col bg-sidebar/60">
+    <aside className={cn("flex min-h-0 flex-col bg-sidebar/60", className)}>
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
         <div className="flex items-center gap-2">
           <Bot className="size-3.5 text-primary" />

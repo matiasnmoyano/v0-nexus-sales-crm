@@ -13,6 +13,8 @@ interface Props {
   selectedId: string | null
   onSelect: (id: string) => void
   onStatusChange: (id: string, status: LeadStatus) => void
+  /** Forwarded to the root <aside>, mostly used for mobile show/hide. */
+  className?: string
 }
 
 const STATUS_DOT: Record<LeadStatus, string> = {
@@ -23,7 +25,13 @@ const STATUS_DOT: Record<LeadStatus, string> = {
   discarded: "bg-muted-foreground/40",
 }
 
-export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: Props) {
+export function PipelinePanel({
+  leads,
+  selectedId,
+  onSelect,
+  onStatusChange,
+  className,
+}: Props) {
   const t = useTranslations()
   const [filter, setFilter] = useState<LeadStatus | "all">("all")
   const [query, setQuery] = useState("")
@@ -56,7 +64,12 @@ export function PipelinePanel({ leads, selectedId, onSelect, onStatusChange }: P
   }, [leads, filter, query])
 
   return (
-    <aside className="flex flex-col border-r border-border bg-sidebar/60 min-h-0">
+    <aside
+      className={cn(
+        "flex min-h-0 flex-col border-border bg-sidebar/60 md:border-r",
+        className,
+      )}
+    >
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
         <div className="flex items-center gap-2">
           <Inbox className="size-3.5 text-muted-foreground" />

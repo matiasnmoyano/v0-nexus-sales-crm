@@ -51,6 +51,8 @@ interface Props {
   onDelete: (id: string) => void
   onRefine: (id: string) => void
   isActiveInCopilot: boolean
+  /** Forwarded to root, mostly used for mobile show/hide. */
+  className?: string
 }
 
 const STATUS_DOT: Record<LeadStatus, string> = {
@@ -67,6 +69,7 @@ export function LeadDetailPanel({
   onDelete,
   onRefine,
   isActiveInCopilot,
+  className,
 }: Props) {
   const t = useTranslations()
   const locale = useLocale()
@@ -94,7 +97,12 @@ export function LeadDetailPanel({
 
   if (!lead) {
     return (
-      <section className="flex min-h-0 items-center justify-center border-r border-border bg-background">
+      <section
+        className={cn(
+          "flex min-h-0 items-center justify-center border-border bg-background md:border-r",
+          className,
+        )}
+      >
         <Empty className="max-w-sm border-0">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -109,8 +117,13 @@ export function LeadDetailPanel({
   }
 
   return (
-    <section className="flex min-h-0 flex-col border-r border-border bg-background">
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-border px-5">
+    <section
+      className={cn(
+        "flex min-h-0 flex-col border-border bg-background md:border-r",
+        className,
+      )}
+    >
+      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4 sm:px-5">
         <div className="flex items-center gap-2">
           <span className={cn("size-1.5 rounded-full", STATUS_DOT[lead.status])} />
           <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -134,10 +147,11 @@ export function LeadDetailPanel({
             variant={isActiveInCopilot ? "secondary" : "outline"}
             onClick={() => onRefine(lead.id)}
             disabled={isActiveInCopilot}
-            className="h-7 gap-1.5 font-mono text-[11px]"
+            aria-label={t("copilot.openInCopilot")}
+            className="h-7 gap-1.5 px-2 font-mono text-[11px] sm:px-2.5"
           >
             <Wand2 className="size-3" />
-            {t("copilot.openInCopilot")}
+            <span className="hidden sm:inline">{t("copilot.openInCopilot")}</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -176,7 +190,7 @@ export function LeadDetailPanel({
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-6 p-5 pb-10">
+        <div className="space-y-6 p-4 pb-10 sm:p-5">
           <Header lead={lead} />
           <Problems lead={lead} />
           <ScoreCard lead={lead} />
@@ -190,9 +204,9 @@ export function LeadDetailPanel({
 function Header({ lead }: { lead: Lead }) {
   const t = useTranslations()
   return (
-    <div className="flex items-start justify-between gap-6">
+    <div className="flex items-start justify-between gap-4 sm:gap-6">
       <div className="min-w-0 space-y-2">
-        <h1 className="text-balance text-2xl font-medium tracking-tight text-foreground">
+        <h1 className="text-balance text-xl font-medium tracking-tight text-foreground sm:text-2xl">
           {lead.company_name}
         </h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -220,7 +234,7 @@ function Header({ lead }: { lead: Lead }) {
           {lead.solution_justification}
         </p>
       </div>
-      <ScoreRing score={lead.lead_score} size={84} strokeWidth={6} className="shrink-0" />
+      <ScoreRing score={lead.lead_score} size={72} strokeWidth={6} className="shrink-0" />
     </div>
   )
 }

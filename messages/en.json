@@ -319,6 +319,14 @@
     "linkedin": "LinkedIn",
     "whatsapp": "WhatsApp"
   },
+  "mobile": {
+    "tabs": {
+      "ariaLabel": "Dashboard view",
+      "pipeline": "Pipeline",
+      "lead": "Lead",
+      "copilot": "Co-Pilot"
+    }
+  },
   "agencyConfig": {
     "title": "Agency profile",
     "subtitle": "The Co-Pilot uses this profile to qualify leads and write outreach. Update it and every future analysis adapts.",

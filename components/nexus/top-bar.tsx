@@ -17,8 +17,8 @@ export function TopBar({ agency, leadCount, onOpenAgency }: Props) {
   const t = useTranslations("header")
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-4">
-      <div className="flex items-center gap-3">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-sidebar px-3 sm:px-4">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <Sparkles className="size-4" strokeWidth={2.4} />
         </div>
@@ -32,7 +32,7 @@ export function TopBar({ agency, leadCount, onOpenAgency }: Props) {
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground sm:flex">
           <span className="size-1.5 rounded-full bg-success nexus-pulse-dot" />
           <span className="font-mono">gpt-5-mini</span>

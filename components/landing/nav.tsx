@@ -48,12 +48,12 @@ export function LandingNav() {
       >
         Skip to content
       </a>
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-6 px-6">
-        <Link href="/" className="flex items-center gap-2 text-white">
-          <span className="grid size-7 place-items-center rounded-md border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 md:gap-6 md:px-6">
+        <Link href="/" className="flex min-w-0 items-center gap-2 text-white">
+          <span className="grid size-7 shrink-0 place-items-center rounded-md border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
             <Zap className="size-3.5" strokeWidth={2.5} />
           </span>
-          <span className="font-display text-[15px] font-semibold tracking-tight">
+          <span className="truncate font-display text-[15px] font-semibold tracking-tight">
             Nexus Sales
           </span>
         </Link>
@@ -70,11 +70,12 @@ export function LandingNav() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <LangToggle />
           <Link
             href="/app"
-            className="group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-md px-4 text-[13px] font-semibold text-black transition"
+            aria-label={t("openApp")}
+            className="group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-md px-3 text-[13px] font-semibold text-black transition sm:px-4"
             style={{
               backgroundImage: "linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%)",
               boxShadow: "0 8px 24px -8px rgba(34, 211, 238, 0.5)",
@@ -82,7 +83,7 @@ export function LandingNav() {
           >
             <span className="relative z-10">{t("openApp")}</span>
             <span
-              className="relative z-10 transition-transform group-hover:translate-x-0.5"
+              className="relative z-10 hidden transition-transform group-hover:translate-x-0.5 sm:inline"
               aria-hidden="true"
             >
               →
