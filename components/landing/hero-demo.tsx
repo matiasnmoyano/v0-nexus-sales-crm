@@ -170,7 +170,7 @@ export function HeroDemo() {
       animate="visible"
       variants={fadeInUp}
       transition={{ duration: 0.6, delay: 0.1 }}
-      className="landing-border-glow relative w-full overflow-hidden rounded-[20px] border border-white/[0.08] bg-white/[0.02] p-6 backdrop-blur-xl"
+      className="relative w-full overflow-hidden rounded-[20px] border border-white/[0.08] bg-white/[0.02] p-6 backdrop-blur-xl"
       style={{ boxShadow: "0 24px 64px -12px rgba(34, 211, 238, 0.18)" }}
     >
       {/* Live demo badge */}
