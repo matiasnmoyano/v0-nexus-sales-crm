@@ -1,35 +1,26 @@
-# v0-nexus-sales-crm
+# Nexus Sales · Prospección con agentes de IA
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+CRM de prospección construido en solitario durante el hackathon **Zero to Agent** de Vercel (abril 2025). Le das la web de una empresa y un agente la investiga, detecta qué le duele, puntúa el lead y redacta el primer contacto.
 
-## Built with v0
+**Demo:** https://v0-nexus-sales-crm.vercel.app
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+## Qué hace el agente
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_jGJ76ybzKdwuRSFetJ4N2W00VyR7)
+- **Analiza la empresa** a partir de su sitio: nombre, rubro y hasta cinco problemas digitales u operativos, cada uno con su evidencia.
+- **Recomienda la solución**: automatización o software a medida, con la justificación.
+- **Puntúa el lead** de 0 a 100, desglosado en dolor digital, capacidad de compra y encaje con el servicio.
+- **Redacta los mensajes** de contacto inicial.
+- Salida estructurada y validada con Zod; respuestas en streaming con el Vercel AI SDK.
 
-## Getting Started
+## Stack
 
-First, run the development server:
+Next.js · TypeScript · Vercel AI SDK (tools, salida estructurada) · Zod · Neon (Postgres serverless) · next-intl (ES/EN) · Tailwind · shadcn/ui
+
+## Desarrollo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Learn More
-
-To learn more, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
-
-<a href="https://v0.app/chat/api/kiro/clone/matiasnmoyano/v0-nexus-sales-crm" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+Autor: [Matías Moyano](https://github.com/matiasnmoyano).
